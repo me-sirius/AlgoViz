@@ -24,6 +24,7 @@ const Navbar = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   // Handle scroll effect for glassmorphism intensity
+  console.log("User in Navbar:", user);
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);

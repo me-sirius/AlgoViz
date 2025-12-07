@@ -21,10 +21,12 @@ import {
 } from "lucide-react";
 // import { useAuth } from "../context/UserContext";
 import { useGoogleLogin } from "@react-oauth/google";
-// import { AuthContext } from "../context/UserContext";
+import { AuthContext } from "../context/UserContext";
 import ChatBot from "./ChatBot";
 // const { user, isAuthenticated, logout } = useAuth();
-const API_BASE_URL = "http://localhost:4000/users";
+// const API_BASE_URL = "http://localhost:4000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
 
 const EmailSignupForm = memo(
   ({
@@ -301,7 +303,7 @@ function OtpVerificationForm({
     try {
       setCanResend(false);
       setCountdown(30);
-      const response = await axios.post(`${API_BASE_URL}/send-otp`, {
+      const response = await axios.post(`${API_BASE_URL}/users/send-otp`, {
         email: formData.email,
         name: formData.name,
       });
@@ -584,6 +586,7 @@ export default function UserSignUp() {
     hasNumber: false,
     hasSpecial: false,
   });
+  const { setUser, setIsAuthenticated } = useContext(AuthContext);
   const [modal, setModal] = useState({
     open: false,
     success: false,
@@ -591,12 +594,12 @@ export default function UserSignUp() {
   });
   const [otpSent, setOtpSent] = useState(false);
   // Google OAuth Configuration
-  // const googleLogin = useGoogleLogin({
-  //   onSuccess: handleGoogleSuccess,
-  //   onError: handleGoogleError,
-  //   flow: "auth-code", // Changed to auth-code for better security
-  //   scope: "email profile",
-  // });
+  const googleLogin = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: handleGoogleError,
+    flow: "auth-code", // Changed to auth-code for better security
+    scope: "email profile",
+  });
   const handleBack = () => {
     setAlertConfig({
       isOpen: true,
@@ -639,7 +642,7 @@ export default function UserSignUp() {
 
     try {
       // Send the authorization code to your backend
-      const response = await axios.post(`${API_BASE_URL}/google-auth`, {
+      const response = await axios.post(`${API_BASE_URL}/users/google-auth`, {
         code: codeResponse.code,
       });
 
@@ -648,14 +651,15 @@ export default function UserSignUp() {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", response.data.user.id);
         setIsAuthenticated(true);
-
+        setUser(response.data.user);
+        console.log("Google OAuth Response:", response.data);
         setModal({
           open: true,
           success: true,
           message: "Google signup successful! Redirecting...",
         });
 
-        setTimeout(() => navigate("/quiz"), 2000);
+        setTimeout(() => navigate("/"), 2000);
       }
     } catch (error) {
       console.error("Google OAuth Error:", error);
@@ -779,7 +783,7 @@ export default function UserSignUp() {
       return;
     }
     try {
-      const response = await axios.post(`${API_BASE_URL}/send-otp`, {
+      const response = await axios.post(`${API_BASE_URL}/users/send-otp`, {
         email: formData.email,
         name: formData.name,
       });
@@ -859,7 +863,7 @@ export default function UserSignUp() {
     const otpString = otp.join("");
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/verify-otp`, {
+      const response = await axios.post(`${API_BASE_URL}/users/verify-otp`, {
         email: formData.email,
         otp: otpString,
         name: formData.name,

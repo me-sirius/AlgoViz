@@ -1,6 +1,7 @@
 const User = require("../models/user.model");
 // const otpGenerator = require("otp-generator");
 const nodemailer = require("nodemailer");
+const { OAuth2Client } = require("google-auth-library");
 const crypto = require("crypto");
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -455,5 +456,78 @@ module.exports.getResetPassword = async (req, res, next) => {
   } catch (err) {
     console.error(err);
     res.status(500).send("An error occurred while processing your request.");
+  }
+};
+
+module.exports.googleLogin = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    const client = new OAuth2Client(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+
+    // Exchange authorization code for tokens
+    const { tokens } = await client.getToken(code);
+
+    // Verify the ID token
+    const ticket = await client.verifyIdToken({
+      idToken: tokens.id_token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { email, name, picture, sub: googleId } = payload;
+
+    // Check if user exists
+    let user = await User.findOne({
+      $or: [{ email }, { googleId }],
+    });
+
+    if (!user) {
+      // Create new user without password
+      user = new User({
+        name,
+        email,
+        googleId,
+        avatar: picture,
+        isVerified: true,
+        authMethod: "google",
+      });
+      await user.save();
+    } else {
+      // User exists - update Google credentials if needed
+      if (!user.googleId) {
+        user.googleId = googleId;
+        user.authMethod = "google";
+        await user.save();
+      }
+      // Update profile picture if empty
+      if (!user.avatar) {
+        user.avatar = picture;
+        await user.save();
+      }
+    }
+
+    // Generate JWT
+    const token = await user.generateAuthToken();
+
+    res.status(200).json({
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        authMethod: user.authMethod,
+      },
+    });
+  } catch (error) {
+    console.error("Google authentication error:", error);
+    res.status(400).json({
+      message: "Google authentication failed",
+      error: error.message,
+    });
   }
 };

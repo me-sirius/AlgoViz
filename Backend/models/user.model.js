@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema(
     },
     memberSince: {
       type: String,
-      required: true,
+      // required: true,
     },
     avatar: {
       type: String,
