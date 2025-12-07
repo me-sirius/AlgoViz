@@ -11,10 +11,13 @@ const userRoutes = require("./routes/user.route");
 const blogRoutes = require("./routes/blog.route");
 const dbConnect = require("./db/db");
 app.get("/", (req, res) => {
-  return res.send("Hello World!");
+  return res.status(200);
 });
 dbConnect();
 // Enable user routes
+app.get("/", (req, res) => {
+  res.status(200);
+});
 app.use("/users", userRoutes);
 app.use("/blogs", blogRoutes);
 app.listen(process.env.PORT, () => {

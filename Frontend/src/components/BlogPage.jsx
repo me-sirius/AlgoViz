@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import Alert from "./Alert";
 import axios from "axios";
+import LoadingPage from "./LoadingPage";
 
 const BlogPage = () => {
   const [alertConfig, setAlertConfig] = useState({
@@ -34,7 +35,7 @@ const BlogPage = () => {
   const [expandedBlogs, setExpandedBlogs] = useState(new Set());
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [editingBlog, setEditingBlog] = useState(null);
-
+  const [loading, setLoading] = useState(true);
   const [blogs, setBlogs] = useState([
     {
       id: 1,
@@ -133,13 +134,24 @@ const BlogPage = () => {
   });
   const [newComment, setNewComment] = useState({});
   const [showComments, setShowComments] = useState({});
+  const [userBlogs, setUserBlog] = useState([]);
+  const [publicBlogs, setPublicBlogs] = useState([]);
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch(`${API}/blogs`);
         const data = await response.json();
         if (data.success) {
+          console.log("Fetched blogs:", data.blogs);
           setBlogs(data.blogs);
+          const userId = localStorage.getItem("userId");
+          const userBlogs = data.blogs.filter((blog) => blog.author === userId);
+          setUserBlog(userBlogs);
+          const publicBlogs = data.blogs.filter(
+            (blog) => blog.author !== userId
+          );
+          setPublicBlogs(publicBlogs);
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching blogs:", error);
@@ -147,9 +159,6 @@ const BlogPage = () => {
     };
     fetchBlogs();
   }, []);
-  // Get user's blogs and public blogs
-  const userBlogs = blogs.filter((blog) => blog.author === currentUser);
-  const publicBlogs = blogs.filter((blog) => blog.author !== currentUser);
 
   const closeAlert = () => {
     setAlertConfig({
@@ -631,211 +640,225 @@ const BlogPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-      {/* Header */}
-      <div className="bg-gray-800 border-b border-gray-700 pt-24">
-        <div className="container mx-auto">
-          <div className="relative flex items-center">
-            {/* Back button - positioned absolutely */}
-            <button
-              onClick={handleBack}
-              className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center justify-center z-10"
-              title="Go back"
-            >
-              <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
-            </button>
+    <>
+      {loading ? (
+        // <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        //   <div className="text-white text-xl">Loading blogs...</div>
+        // </div>
+        <LoadingPage />
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
+          {/* Header */}
+          <div className="bg-gray-800 border-b border-gray-700 pt-24">
+            <div className="container mx-auto">
+              <div className="relative flex items-center">
+                {/* Back button - positioned absolutely */}
+                <button
+                  onClick={handleBack}
+                  className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center justify-center z-10"
+                  title="Go back"
+                >
+                  <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
+                </button>
 
-            {/* Main header content - centered with padding to account for back button */}
-            <div className="flex-1 px-6 py-8">
-              <div className="flex items-center justify-between">
-                <div className="flex-1 ml-12">
-                  <h1 className="text-3xl font-bold text-white">
-                    AlgoViz Blog
-                  </h1>
-                  <p className="text-gray-400">
-                    Share your algorithmic insights and learn from the community
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowCreateBlog(true)}
-                  className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg transition-colors duration-300"
-                >
-                  <Plus className="w-5 h-5" />
-                  <span>Write Blog</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-6 py-8">
-        {/* User's Blogs Carousel */}
-        {userBlogs.length > 0 && (
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold text-white">My Blogs</h2>
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={prevCarouselItem}
-                  disabled={userBlogs.length <= 1}
-                  className="p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-                <span className="text-gray-400 text-sm">
-                  {carouselIndex + 1} / {userBlogs.length}
-                </span>
-                <button
-                  onClick={nextCarouselItem}
-                  disabled={userBlogs.length <= 1}
-                  className="p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <div className="overflow-hidden">
-              <div
-                className="flex transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(-${carouselIndex * 100}%)` }}
-              >
-                {userBlogs.map((blog) => (
-                  <div key={blog.id} className="w-full flex-shrink-0 pr-4">
-                    {renderBlogCard(blog, true)}
+                {/* Main header content - centered with padding to account for back button */}
+                <div className="flex-1 px-6 py-8">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 ml-12">
+                      <h1 className="text-3xl font-bold text-white">
+                        AlgoViz Blog
+                      </h1>
+                      <p className="text-gray-400">
+                        Share your algorithmic insights and learn from the
+                        community
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setShowCreateBlog(true)}
+                      className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg transition-colors duration-300"
+                    >
+                      <Plus className="w-5 h-5" />
+                      <span>Write Blog</span>
+                    </button>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </div>
-        )}
 
-        {/* Create Blog Modal */}
-        {showCreateBlog && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div className="bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between p-6 border-b border-gray-700">
-                <h2 className="text-xl font-semibold text-white">
-                  {editingBlog ? "Edit Blog Post" : "Create New Blog Post"}
-                </h2>
-                <button
-                  onClick={() => {
-                    setShowCreateBlog(false);
-                    setEditingBlog(null);
-                    setNewBlog({ title: "", content: "", tags: "" });
-                  }}
-                  className="text-gray-400 hover:text-white transition-colors"
-                >
-                  <X className="w-6 h-6" />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Tags (comma separated)
-                  </label>
-                  <input
-                    type="text"
-                    value={newBlog.title}
-                    onChange={(e) =>
-                      setNewBlog({ ...newBlog, title: e.target.value })
-                    }
-                    placeholder="e.g., Algorithm, Data Structure, Binary Search"
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
-                  />
+          <div className="container mx-auto px-6 py-8">
+            {/* User's Blogs Carousel */}
+            {userBlogs.length > 0 && (
+              <div className="mb-12">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-white">My Blogs</h2>
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={prevCarouselItem}
+                      disabled={userBlogs.length <= 1}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <span className="text-gray-400 text-sm">
+                      {carouselIndex + 1} / {userBlogs.length}
+                    </span>
+                    <button
+                      onClick={nextCarouselItem}
+                      disabled={userBlogs.length <= 1}
+                      className="p-2 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Content
-                  </label>
-                  <textarea
-                    value={newBlog.content}
-                    onChange={(e) =>
-                      setNewBlog({ ...newBlog, content: e.target.value })
-                    }
-                    placeholder="Write your blog content here... You can use line breaks for formatting."
-                    rows={12}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
-                  />
+                <div className="overflow-hidden">
+                  <div
+                    className="flex transition-transform duration-300 ease-in-out"
+                    style={{
+                      transform: `translateX(-${carouselIndex * 100}%)`,
+                    }}
+                  >
+                    {userBlogs.map((blog) => (
+                      <div key={blog.id} className="w-full flex-shrink-0 pr-4">
+                        {renderBlogCard(blog, true)}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
+            )}
 
-              <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-700">
-                <button
-                  onClick={() => {
-                    setShowCreateBlog(false);
-                    setEditingBlog(null);
-                    setNewBlog({ title: "", content: "", tags: "" });
-                  }}
-                  className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={editingBlog ? handleUpdateBlog : handleCreateBlog}
-                  // disabled={!newBlog.title.trim() || !newBlog.content.trim()}
-                  className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 cursor-pointer text-white rounded-lg transition-colors duration-300"
-                >
-                  {editingBlog ? "Update Blog" : "Publish Blog"}
-                </button>
+            {/* Create Blog Modal */}
+            {showCreateBlog && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                    <h2 className="text-xl font-semibold text-white">
+                      {editingBlog ? "Edit Blog Post" : "Create New Blog Post"}
+                    </h2>
+                    <button
+                      onClick={() => {
+                        setShowCreateBlog(false);
+                        setEditingBlog(null);
+                        setNewBlog({ title: "", content: "", tags: "" });
+                      }}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Tags (comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={newBlog.title}
+                        onChange={(e) =>
+                          setNewBlog({ ...newBlog, title: e.target.value })
+                        }
+                        placeholder="e.g., Algorithm, Data Structure, Binary Search"
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Content
+                      </label>
+                      <textarea
+                        value={newBlog.content}
+                        onChange={(e) =>
+                          setNewBlog({ ...newBlog, content: e.target.value })
+                        }
+                        placeholder="Write your blog content here... You can use line breaks for formatting."
+                        rows={12}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end space-x-4 p-6 border-t border-gray-700">
+                    <button
+                      onClick={() => {
+                        setShowCreateBlog(false);
+                        setEditingBlog(null);
+                        setNewBlog({ title: "", content: "", tags: "" });
+                      }}
+                      className="px-6 py-2 text-gray-400 hover:text-white transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={
+                        editingBlog ? handleUpdateBlog : handleCreateBlog
+                      }
+                      // disabled={!newBlog.title.trim() || !newBlog.content.trim()}
+                      className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 cursor-pointer text-white rounded-lg transition-colors duration-300"
+                    >
+                      {editingBlog ? "Update Blog" : "Publish Blog"}
+                    </button>
+                  </div>
+                </div>
               </div>
+            )}
+
+            {/* Public Blogs Section */}
+            <div className="space-y-8">
+              {publicBlogs.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    Community Blogs
+                  </h2>
+                </div>
+              )}
+
+              {publicBlogs.map((blog) => renderBlogCard(blog, false))}
+
+              {publicBlogs.length === 0 && userBlogs.length === 0 && (
+                <div className="text-center py-12">
+                  <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <MessageSquare className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-400 mb-2">
+                    No blogs yet
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Be the first to share your insights!
+                  </p>
+                  <button
+                    onClick={() => setShowCreateBlog(true)}
+                    className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors duration-300"
+                  >
+                    Write Your First Blog
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Load More Button */}
+            {publicBlogs.length > 0 && (
+              <div className="text-center mt-12">
+                <button className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-300">
+                  Load More Posts
+                </button>
+              </div>
+            )}
           </div>
-        )}
 
-        {/* Public Blogs Section */}
-        <div className="space-y-8">
-          {publicBlogs.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-white mb-6">
-                Community Blogs
-              </h2>
-            </div>
-          )}
-
-          {publicBlogs.map((blog) => renderBlogCard(blog, false))}
-
-          {publicBlogs.length === 0 && userBlogs.length === 0 && (
-            <div className="text-center py-12">
-              <div className="w-24 h-24 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare className="w-12 h-12 text-gray-400" />
-              </div>
-              <h3 className="text-xl font-semibold text-gray-400 mb-2">
-                No blogs yet
-              </h3>
-              <p className="text-gray-500 mb-6">
-                Be the first to share your insights!
-              </p>
-              <button
-                onClick={() => setShowCreateBlog(true)}
-                className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors duration-300"
-              >
-                Write Your First Blog
-              </button>
-            </div>
-          )}
+          <Alert
+            isOpen={alertConfig.isOpen}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            onClose={closeAlert}
+            customButtons={alertConfig.customButtons}
+          />
         </div>
-
-        {/* Load More Button */}
-        {publicBlogs.length > 0 && (
-          <div className="text-center mt-12">
-            <button className="px-8 py-3 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors duration-300">
-              Load More Posts
-            </button>
-          </div>
-        )}
-      </div>
-
-      <Alert
-        isOpen={alertConfig.isOpen}
-        message={alertConfig.message}
-        type={alertConfig.type}
-        onClose={closeAlert}
-        customButtons={alertConfig.customButtons}
-      />
-    </div>
+      )}
+    </>
   );
 };
 

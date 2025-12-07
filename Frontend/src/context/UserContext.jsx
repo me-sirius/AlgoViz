@@ -5,7 +5,7 @@ import React, {
   useContext,
   use,
 } from "react";
-
+import { useNavigate } from "react-router-dom";
 export const AuthContext = createContext();
 import axios from "axios";
 // Custom hook to use auth context
@@ -24,7 +24,9 @@ export function AuthProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState(null);
   const [blogs, setBlogs] = useState([]);
+  const [connectionError, setConnectionError] = useState(false);
   // User activity and preferences
+  const navigate = useNavigate();
   const [userPreferences, setUserPreferences] = useState({
     theme: "light",
     language: "en",
@@ -34,7 +36,7 @@ export function AuthProvider({ children }) {
       sms: false,
     },
   });
-  const API_BASE_URL = "http://localhost:4000/users";
+  const API_BASE_URL = "http://localhost:4000";
   // App state
   const [isFirstLogin, setIsFirstLogin] = useState(false);
   const [hasCompletedTour, setHasCompletedTour] = useState(false);
@@ -46,6 +48,18 @@ export function AuthProvider({ children }) {
   // Initialize auth state on app load (Local Storage Check)
   useEffect(() => {
     initializeAuth();
+    async function checkingConnection() {
+      console.log("Checking connection to backend...");
+      try {
+        const response = await axios.get(`${API_BASE_URL}`);
+        if (response.status !== 200) {
+          setConnectionError(true);
+        }
+      } catch (error) {
+        setConnectionError(true);
+      }
+    }
+    checkingConnection();
   }, []);
 
   // Track user activity
@@ -69,7 +83,7 @@ export function AuthProvider({ children }) {
 
         if (storedUserId) {
           const response = await axios.get(
-            `${API_BASE_URL}/getUserDetail/${storedUserId}`,
+            `${API_BASE_URL}/users/getUserDetail/${storedUserId}`,
             {
               headers: {
                 Authorization: `Bearer ${
