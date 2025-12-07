@@ -13,7 +13,7 @@ router.post("/register", register);
 router.post("/login", login);
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
-router.post("/getUserDetail", getUserDetails);
+router.get("/getUserDetail/:id", getUserDetails);
 router.post("/forgot-password", forgotPassword);
 router.get("/reset-password/:token", getResetPassword);
 module.exports = router;

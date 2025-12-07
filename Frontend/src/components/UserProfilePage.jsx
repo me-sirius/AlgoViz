@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import {
   User,
@@ -32,7 +32,7 @@ import {
   ArrowLeft, // Import ArrowLeft
   AlertTriangle, // Import Alert Icon
 } from "lucide-react";
-
+import { AuthContext } from "../context/UserContext";
 // --- Custom Alert Component (Matches your theme) ---
 const CustomAlert = ({ config, onClose }) => {
   if (!config.isOpen) return null;
@@ -72,7 +72,7 @@ const UserProfilePage = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [currentActivityIndex, setCurrentActivityIndex] = useState(0);
-
+  const { user } = useContext(AuthContext);
   // Alert State
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
@@ -85,8 +85,7 @@ const UserProfilePage = () => {
   const handleBack = () => {
     setAlertConfig({
       isOpen: true,
-      message:
-        "Are you sure you want to go back? Any unsaved progress will be lost.",
+      message: "Are you sure you want to go back?",
       type: "warning",
       customButtons: (
         <div className="flex gap-3 justify-center w-full">
@@ -114,22 +113,22 @@ const UserProfilePage = () => {
   };
 
   // Sample user data
-  const userData = {
-    name: "Alex Johnson",
-    email: "alex.johnson@email.com",
-    joinDate: "January 2024",
-    level: "Algorithm Master",
-    avatar: null,
-    bio: "Passionate about data structures and algorithms. Love visualizing complex concepts!",
-    location: "San Francisco, CA",
-    website: "alexcodes.dev",
-    social: {
-      github: "alexjohnson",
-      linkedin: "alexjohnson",
-      twitter: "@alexcodes",
-    },
-  };
-
+  // const user = {
+  //   name: "Alex Johnson",
+  //   email: "alex.johnson@email.com",
+  //   joinDate: "January 2024",
+  //   level: "Algorithm Master",
+  //   avatar: null,
+  //   bio: "Passionate about data structures and algorithms. Love visualizing complex concepts!",
+  //   location: "San Francisco, CA",
+  //   website: "alexcodes.dev",
+  //   social: {
+  //     github: "alexjohnson",
+  //     linkedin: "alexjohnson",
+  //     twitter: "@alexcodes",
+  //   },
+  // };
+  // console.log("User Profile Data:", user);
   // Sample activities data
   const pastActivities = [
     {
@@ -239,7 +238,7 @@ const UserProfilePage = () => {
   ];
 
   const stats = {
-    totalActivities: pastActivities.length,
+    totalActivities: pastActivities?.length,
     currentStreak: 5,
     avgAccuracy: Math.round(
       pastActivities.reduce((acc, act) => acc + act.accuracy, 0) /
@@ -298,9 +297,9 @@ const UserProfilePage = () => {
             <div className="relative group">
               <div className="w-40 h-40 rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 p-1 shadow-2xl transform transition-transform group-hover:scale-105">
                 <div className="w-full h-full rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center overflow-hidden">
-                  {userData.avatar ? (
+                  {user.avatar ? (
                     <img
-                      src={userData.avatar}
+                      src={user.avatar}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
@@ -321,67 +320,67 @@ const UserProfilePage = () => {
             <div className="flex-1 text-center md:text-left">
               <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
                 <h1 className="text-5xl font-black bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  {userData.name}
+                  {user.name}
                 </h1>
                 <CheckCircle className="w-6 h-6 text-cyan-400" />
               </div>
 
               <p className="text-lg text-slate-400 mb-2 flex items-center justify-center md:justify-start gap-2">
                 <Mail className="w-4 h-4" />
-                {userData.email}
+                {user.email}
               </p>
 
-              <p className="text-slate-300 mb-4 max-w-2xl">{userData.bio}</p>
+              <p className="text-slate-300 mb-4 max-w-2xl">{user.bio}</p>
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mb-4">
                 <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-cyan-400" />
                   <span className="text-sm font-semibold text-slate-300">
-                    Joined {userData.joinDate}
+                    Joined {user.joinDate}
                   </span>
                 </div>
                 <div className="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-500 shadow-lg">
                   <span className="text-sm font-bold text-white">
-                    {userData.level}
+                    {user.level}
                   </span>
                 </div>
-                {userData.location && (
+                {user.location && (
                   <div className="px-4 py-2 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center gap-2">
                     <Globe className="w-4 h-4 text-purple-400" />
                     <span className="text-sm font-semibold text-slate-300">
-                      {userData.location}
+                      {user.location}
                     </span>
                   </div>
                 )}
               </div>
 
               {/* Social Links */}
-              <div className="flex items-center justify-center md:justify-start gap-2">
-                {userData.social.github && (
+              {/* <div className="flex items-center justify-center md:justify-start gap-2">
+                {user?.social?.github && (
                   <a
-                    href={`https://github.com/${userData.social.github}`}
+                    href={`https://github.com/${user.social.github}`}
                     className="p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all hover:scale-110"
                   >
                     <Github className="w-5 h-5 text-slate-300" />
                   </a>
                 )}
-                {userData.social.linkedin && (
+                {user.social.linkedin && (
                   <a
-                    href={`https://linkedin.com/in/${userData.social.linkedin}`}
+                    href={`https://linkedin.com/in/${user.social.linkedin}`}
                     className="p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all hover:scale-110"
                   >
                     <Linkedin className="w-5 h-5 text-slate-300" />
                   </a>
                 )}
-                {userData.social.twitter && (
+                {user.social.twitter && (
                   <a
-                    href={`https://twitter.com/${userData.social.twitter}`}
+                    href={`https://twitter.com/${user.social.twitter}`}
                     className="p-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 transition-all hover:scale-110"
                   >
                     <Twitter className="w-5 h-5 text-slate-300" />
                   </a>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
@@ -720,7 +719,7 @@ const UserProfilePage = () => {
             </label>
             <input
               type="text"
-              defaultValue={userData.name}
+              defaultValue={user.name}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 transition-all"
             />
           </div>
@@ -730,7 +729,7 @@ const UserProfilePage = () => {
             </label>
             <input
               type="email"
-              defaultValue={userData.email}
+              defaultValue={user.email}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 transition-all"
             />
           </div>
@@ -740,7 +739,7 @@ const UserProfilePage = () => {
             </label>
             <textarea
               rows="3"
-              defaultValue={userData.bio}
+              defaultValue={user.bio}
               className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/50 transition-all resize-none"
             />
           </div>
@@ -926,9 +925,9 @@ const UserProfilePage = () => {
             <div className="hidden lg:flex p-4 rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 items-center gap-3 mt-4">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-purple-500 p-[2px]">
                 <div className="w-full h-full rounded-full bg-slate-900 flex items-center justify-center overflow-hidden">
-                  {userData.avatar ? (
+                  {user?.avatar ? (
                     <img
-                      src={userData.avatar}
+                      src={user.avatar}
                       alt="User"
                       className="w-full h-full object-cover"
                     />
@@ -939,7 +938,7 @@ const UserProfilePage = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">
-                  {userData.name}
+                  {user?.name}
                 </p>
                 <p className="text-xs text-slate-400 truncate">Pro Member</p>
               </div>

@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Code, ChevronDown, BookOpen, Cpu, FileText, LogIn, UserPlus, User, LogOut, Home, Sun, Moon, Menu, X, Sparkles, Zap
 } from "lucide-react";
-import { useAuth } from "../context/UserContext";
+import { AuthContext } from "../context/UserContext";
 import { useTheme } from "../context/ThemeContext";
 
 const Navbar = () => {
@@ -14,7 +14,7 @@ const Navbar = () => {
   const [showUserDropdown, setShowUserDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useContext(AuthContext);
 
   const resourcesDropdownRef = useRef(null);
   const userDropdownRef = useRef(null);
@@ -23,7 +23,6 @@ const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const isHomePage = location.pathname === "/";
-
   // Handle scroll effect for glassmorphism intensity
   useEffect(() => {
     const handleScroll = () => {

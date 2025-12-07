@@ -597,6 +597,29 @@ export default function UserSignUp() {
   //   flow: "auth-code", // Changed to auth-code for better security
   //   scope: "email profile",
   // });
+  const handleBack = () => {
+    setAlertConfig({
+      isOpen: true,
+      message: "Are you sure you want to leave? Your progress will be lost.",
+      type: "warning",
+      customButtons: (
+        <div className="flex space-x-4 justify-center ">
+          <button
+            onClick={() => navigate("/")}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            Leave
+          </button>
+          <button
+            onClick={closeAlert}
+            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+          >
+            Stay
+          </button>
+        </div>
+      ),
+    });
+  };
   const checkPasswordStrength = (password, confirmPassword) => {
     setPasswordValidation({
       hasLength: password.length >= 8,
@@ -877,6 +900,13 @@ export default function UserSignUp() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2c3250] flex items-center justify-center p-4 md:p-8">
+      <button
+        onClick={handleBack}
+        className="mb-6 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+      >
+        <ArrowLeft className="w-5 h-5 mr-2" />
+        <span>Back</span>
+      </button>
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full blur-3xl transform rotate-12 opacity-20" />
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-orange-500/20 to-transparent rounded-full blur-3xl transform -rotate-12 opacity-20" />

@@ -24,6 +24,11 @@ const userSchema = new mongoose.Schema(
     },
     avatar: {
       type: String,
+      default: null,
+    },
+    bio: {
+      type: String,
+      default: "",
     },
     isVerified: {
       type: Boolean,

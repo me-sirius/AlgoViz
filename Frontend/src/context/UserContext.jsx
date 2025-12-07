@@ -1,4 +1,10 @@
-import React, { createContext, useState, useEffect, useContext } from "react";
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useContext,
+  use,
+} from "react";
 
 export const AuthContext = createContext();
 import axios from "axios";
@@ -55,7 +61,35 @@ export function AuthProvider({ children }) {
       return () => clearInterval(activityInterval);
     }
   }, [isAuthenticated]);
+  useEffect(() => {
+    const fetchUserDetails = async () => {
+      try {
+        const storedUserId =
+          localStorage.getItem("userId") || sessionStorage.getItem("userId");
 
+        if (storedUserId) {
+          const response = await axios.get(
+            `${API_BASE_URL}/getUserDetail/${storedUserId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (response.status === 200) {
+            setUser(response.data);
+            setIsAuthenticated(true);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user details:", error);
+        // Handle error appropriately
+      }
+    };
+
+    fetchUserDetails();
+  }, [token]);
   const initializeAuth = async () => {
     try {
       setIsLoading(true);
@@ -81,70 +115,6 @@ export function AuthProvider({ children }) {
       setIsLoading(false);
     }
   };
-
-  // ------------------------------------------------------------------
-  // NEW: Fetch fresh user data from database using userId from storage
-  // ------------------------------------------------------------------
-  useEffect(() => {
-    const fetchFreshUser = async () => {
-      // 1. Get userId and token from storage
-      // We look for 'userId' specifically, or fall back to parsing the 'user' object if you store the ID there
-      let userId = localStorage.getItem("userId");
-      const storedToken = localStorage.getItem("token");
-      console.log("lane jaa rha hu data", userId);
-      // Fallback: If userId isn't stored separately, try to get it from the stored user object
-      if (!userId) {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          try {
-            const parsedUser = JSON.parse(storedUser);
-            userId = parsedUser.id || parsedUser._id || parsedUser.userId;
-          } catch (e) {
-            console.error("Error parsing stored user for ID");
-          }
-        }
-      }
-
-      // 2. If we have both ID and Token, fetch from DB
-      if (userId && storedToken) {
-        try {
-          // Adjust this URL to match your specific backend route (e.g., /api/users/:id)
-          const response = await axios.post(
-            `${API_BASE_URL}/getUserDetail`,
-            {id: userId }, // <-- body
-            {
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${storedToken}`,
-              },
-            }
-          );
-
-          if (response.ok) {
-            const freshUserData = await response.json();
-
-            // 3. Update state with fresh database data
-            setUser(freshUserData);
-
-            // Optional: Update local storage so it's fresh for next refresh
-            localStorage.setItem("user", JSON.stringify(freshUserData));
-
-            if (freshUserData.preferences) {
-              setUserPreferences(freshUserData.preferences);
-            }
-          } else {
-            console.warn("Failed to fetch fresh user data from DB");
-            // Optional: if response is 401 (Unauthorized), you might want to logout
-            if (response.status === 401) logout();
-          }
-        } catch (error) {
-          console.error("Network error fetching user details:", error);
-        }
-      }
-    };
-
-    fetchFreshUser();
-  }, []); // Runs once on mount
 
   const login = async (credentials, rememberMe = false) => {
     try {
@@ -290,7 +260,7 @@ export function AuthProvider({ children }) {
     setLastActivity(null);
 
     // Clear storage
-    localStorage.removeItem("authToken");
+    localStorage.removeItem("token");
     localStorage.removeItem("user");
     localStorage.removeItem("userId"); // Clear userId
     localStorage.removeItem("userPreferences");

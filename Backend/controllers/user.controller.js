@@ -302,13 +302,11 @@ module.exports.verifyOtp = async (req, res, next) => {
   }
 };
 exports.getUserDetails = async (req, res) => {
-  console.log("aaya hu sir");
   try {
-    console.log(req.body);
-    const userId = req.body.id;
-    console.log("userId : ", userId);
+    const userId = req.params.id; // Get from URL params, not body
+
     const user = await User.findById(userId).select("-password");
-    console.log(user);
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -318,7 +316,7 @@ exports.getUserDetails = async (req, res) => {
     console.error("Error fetching user details:", error);
 
     if (error.kind === "ObjectId") {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "Invalid user ID" });
     }
 
     res.status(500).json({ message: "Server error" });
