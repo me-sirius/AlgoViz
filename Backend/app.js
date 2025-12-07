@@ -16,7 +16,7 @@ app.get("/", (req, res) => {
 dbConnect();
 // Enable user routes
 app.get("/", (req, res) => {
-  res.status(200);
+  res.status(200).json({ message: "API is working" });
 });
 app.use("/users", userRoutes);
 app.use("/blogs", blogRoutes);

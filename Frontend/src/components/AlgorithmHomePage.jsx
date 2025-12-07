@@ -80,7 +80,7 @@ const AlgorithmHomePage = () => {
     } else {
       document.body.style.overflow = 'unset';
     }
-    
+
     // Cleanup on unmount
     return () => {
       document.body.style.overflow = 'unset';
@@ -1108,9 +1108,9 @@ const AlgorithmHomePage = () => {
                     { label: 'Support', href: '/support' },
                   ].map((link, i) => (
                     <li key={i}>
-                      <a href={link.href} className={`text-sm transition-colors duration-200 cursor-pointer ${theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
+                      <div onClick={()=>navigate(link.href)} className={`text-sm transition-colors duration-200 cursor-pointer ${theme === 'dark' ? 'text-slate-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}>
                         {link.label}
-                      </a>
+                      </div>
                     </li>
                   ))}
                 </ul>
