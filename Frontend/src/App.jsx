@@ -56,7 +56,6 @@ function App() {
         {/* Routes that include Navbar via layout */}
         <Route element={<MainLayout />}>
           <Route path="/" element={<AlgorithmHomePage />} />
-          <Route path="/blogs" element={<BlogPage />} />
           <Route path="/cheatsheet" element={<CheatSheet />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/support" element={<SupportPage />} />
@@ -64,6 +63,7 @@ function App() {
         </Route>
 
         {/* Routes without Navbar */}
+        <Route path="/blogs" element={<BlogPage />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/register" element={<SignUp />} />
         <Route path="/user-profile" element={<UserProfilePage />} />

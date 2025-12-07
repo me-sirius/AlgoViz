@@ -18,6 +18,8 @@ import {
 import { AuthContext } from "../context/UserContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import ChatBot from "./ChatBot";
+import Alert from "./Alert";
+
 export default function UserSignIn() {
   const API_BASE_URL = "http://localhost:4000";
   const navigate = useNavigate();
@@ -39,10 +41,43 @@ export default function UserSignIn() {
     success: false,
     message: "",
   });
+  const [alertConfig, setAlertConfig] = useState({
+    isOpen: false,
+    message: "",
+    type: "error",
+    customButtons: null,
+  });
   const { setToken, setUser, setIsAuthenticated } = useContext(AuthContext);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleBack = () => {
+    setAlertConfig({
+      isOpen: true,
+      message: "Are you sure you want to leave? Your progress will be lost.",
+      type: "warning",
+      customButtons: (
+        <div className="flex space-x-4 justify-center">
+          <button
+            onClick={() => navigate("/")}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Leave
+          </button>
+          <button
+            onClick={() =>
+              setAlertConfig((prev) => ({ ...prev, isOpen: false }))
+            }
+            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Stay
+          </button>
+        </div>
+      ),
+    });
   };
 
   const handleSubmit = async (e) => {
@@ -60,7 +95,7 @@ export default function UserSignIn() {
           open: true,
           success: true,
           message: "Welcome back! Redirecting to Home Page...",
-          icon: "🎉", // Changed from email icon to celebration
+          icon: "🎉",
         });
         setIsAuthenticated(true);
         setToken(response.data.token);
@@ -91,7 +126,6 @@ export default function UserSignIn() {
           success: true,
           message: "Check your inbox! We've sent a password reset link.",
         });
-        // Auto-close modal after 3 seconds
         setTimeout(() => {
           setModal({ open: false, success: false, message: "" });
           setShowForgotPassword(false);
@@ -107,25 +141,23 @@ export default function UserSignIn() {
       setForgotPasswordLoading(false);
     }
   };
+
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
     onError: handleGoogleError,
-    flow: "auth-code", // Changed to auth-code for better security
+    flow: "auth-code",
     scope: "email profile",
   });
 
-  // Google OAuth Success Handler
   async function handleGoogleSuccess(codeResponse) {
     setSocialLoading((prev) => ({ ...prev, google: true }));
 
     try {
-      // Send the authorization code to your backend
       const response = await axios.post(`${API_BASE_URL}/users/google-auth`, {
         code: codeResponse.code,
       });
 
       if (response.data.token) {
-        // Store authentication data
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", response.data.user.id);
         setIsAuthenticated(true);
@@ -133,7 +165,7 @@ export default function UserSignIn() {
         setModal({
           open: true,
           success: true,
-          message: "Google signup successful! Redirecting...",
+          message: "Google signin successful! Redirecting...",
         });
 
         setTimeout(() => navigate("/"), 2000);
@@ -152,7 +184,6 @@ export default function UserSignIn() {
     }
   }
 
-  // Google OAuth Error Handler
   function handleGoogleError(error) {
     console.error("Google OAuth Error:", error);
     setModal({
@@ -170,7 +201,19 @@ export default function UserSignIn() {
     setModal({ open: false, success: false, message: "" });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2c3250] flex items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2c3250] flex items-center justify-center p-4 md:p-8 relative">
+      {/* Back Button - Positioned Top Left */}
+      <button
+        onClick={handleBack}
+        className="absolute top-4 left-4 md:top-8 md:left-8 z-50 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 border border-gray-700/50 transition-all hover:text-white text-gray-400 group"
+        title="Go back"
+      >
+        <ArrowLeft
+          size={24}
+          className="group-hover:-translate-x-0.5 transition-transform"
+        />
+      </button>
+
       {/* Background Effects */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full blur-3xl transform rotate-12 opacity-20" />
@@ -184,9 +227,8 @@ export default function UserSignIn() {
         transition={{ duration: 0.5 }}
         className="relative w-full max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden flex border border-white/20"
       >
-        {/* Left Panel - Interactive Animation */}
+        {/* Left Panel */}
         <div className="w-1/2 hidden lg:flex items-center justify-center p-12 relative bg-gradient-to-br from-[#1a1f37]/50 to-[#2c3250]/50">
-          {/* Background particles */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute w-full h-full">
               {[...Array(20)].map((_, i) => (
@@ -208,14 +250,22 @@ export default function UserSignIn() {
             </div>
           </div>
 
-          {/* Central animated element */}
+          <Alert
+            isOpen={alertConfig.isOpen}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            onClose={() =>
+              setAlertConfig((prev) => ({ ...prev, isOpen: false }))
+            }
+            customButtons={alertConfig.customButtons}
+          />
+
           <div className="relative z-10">
             <motion.div
               animate={{ rotateY: 360 }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="relative w-72 h-72" // Increased size for better spacing
+              className="relative w-72 h-72"
             >
-              {/* Orbital rings with gradient */}
               <motion.div
                 className="absolute inset-0 rounded-full"
                 style={{
@@ -224,8 +274,6 @@ export default function UserSignIn() {
                   border: "4px solid transparent",
                   backgroundClip: "padding-box",
                 }}
-                // animate={{ rotate: 360 }}
-                // transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
               />
               <motion.div
                 className="absolute inset-12 rounded-full"
@@ -237,7 +285,6 @@ export default function UserSignIn() {
                 }}
               />
 
-              {/* Central brain icon with enhanced gradient */}
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
                 animate={{ scale: [1, 1.1, 1] }}
@@ -248,7 +295,6 @@ export default function UserSignIn() {
                 </div>
               </motion.div>
 
-              {/* Orbiting icons with calculated positions */}
               {[
                 { Icon: Book, color: "from-blue-400 to-blue-500", delay: 0 },
                 {
@@ -263,8 +309,8 @@ export default function UserSignIn() {
                 },
                 { Icon: Atom, color: "from-green-400 to-green-500", delay: 6 },
               ].map(({ Icon, color, delay }, index) => {
-                const angle = (index * Math.PI * 2) / 4; // Evenly space icons
-                const radius = 120; // Distance from center
+                const angle = (index * Math.PI * 2) / 4;
+                const radius = 120;
                 const x = Math.cos(angle) * radius;
                 const y = Math.sin(angle) * radius;
 
@@ -291,7 +337,6 @@ export default function UserSignIn() {
               })}
             </motion.div>
 
-            {/* Enhanced welcome text */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -310,8 +355,10 @@ export default function UserSignIn() {
             </motion.div>
           </div>
         </div>
+
         {/* Right Panel - Form */}
         <div className="w-full lg:w-1/2 p-8 md:p-12">
+          {/* ... Form Content ... */}
           <AnimatePresence mode="wait">
             {!showForgotPassword ? (
               <motion.div
@@ -329,11 +376,10 @@ export default function UserSignIn() {
                 </p>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  {/* Email Input */}
+                  {/* ... Inputs ... */}
                   <div className="relative group">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 
-                                   group-focus-within:text-yellow-400 transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors"
                       size={20}
                     />
                     <input
@@ -343,18 +389,13 @@ export default function UserSignIn() {
                       value={credentials.email}
                       onChange={handleChange}
                       placeholder="Email Address"
-                      className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 
-                               rounded-xl text-white placeholder-gray-400 focus:outline-none 
-                               focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 
-                               transition-all"
+                      className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all"
                     />
                   </div>
 
-                  {/* Password Input */}
                   <div className="relative group">
                     <Lock
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 
-                                   group-focus-within:text-yellow-400 transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors"
                       size={20}
                     />
                     <input
@@ -364,16 +405,12 @@ export default function UserSignIn() {
                       value={credentials.password}
                       onChange={handleChange}
                       placeholder="Password"
-                      className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 
-                               rounded-xl text-white placeholder-gray-400 focus:outline-none 
-                               focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 
-                               transition-all"
+                      className="w-full pl-11 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 
-                               hover:text-white transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                     >
                       {showPassword ? (
                         <EyeOff size={20} />
@@ -383,7 +420,6 @@ export default function UserSignIn() {
                     </button>
                   </div>
 
-                  {/* Forgot Password Link */}
                   <div className="text-right">
                     <button
                       type="button"
@@ -394,16 +430,12 @@ export default function UserSignIn() {
                     </button>
                   </div>
 
-                  {/* Submit Button */}
                   <motion.button
                     type="submit"
                     disabled={loading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 
-                             to-orange-500 text-[#1a1f37] font-semibold flex items-center 
-                             justify-center space-x-2 hover:shadow-lg hover:shadow-yellow-500/25 
-                             transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-[#1a1f37] font-semibold flex items-center justify-center space-x-2 hover:shadow-lg hover:shadow-yellow-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {loading ? (
                       <>
@@ -416,24 +448,21 @@ export default function UserSignIn() {
                   </motion.button>
                 </form>
 
-                {/* Divider */}
                 <div className="my-6 flex items-center">
                   <div className="flex-1 border-t border-white/20"></div>
                   <span className="px-4 text-gray-400 text-sm">OR</span>
                   <div className="flex-1 border-t border-white/20"></div>
                 </div>
 
-                {/* Google Sign In Button */}
                 <div className="space-y-4">
                   <motion.button
                     onClick={handleGoogleSignIn}
                     disabled={socialLoading.google || socialLoading.github}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-6 
-                                 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center 
-                                 space-x-3 hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full bg-white hover:bg-gray-50 text-gray-700 font-semibold py-4 px-6 rounded-xl shadow-sm transition-all duration-200 flex items-center justify-center space-x-3 hover:shadow-md disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
                   >
+                    {/* Google Icon and Text */}
                     {socialLoading.google ? (
                       <>
                         <Loader2 className="animate-spin w-5 h-5" />
@@ -470,8 +499,7 @@ export default function UserSignIn() {
                     Don't have an account?{" "}
                     <NavLink
                       to="/register"
-                      className="text-yellow-400 hover:text-yellow-300 
-                                                   transition-colors"
+                      className="text-yellow-400 hover:text-yellow-300 transition-colors"
                     >
                       Sign Up
                     </NavLink>
@@ -503,11 +531,9 @@ export default function UserSignIn() {
                 </div>
 
                 <form onSubmit={handleForgotPassword} className="space-y-6">
-                  {/* Email Input */}
                   <div className="relative group">
                     <Mail
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 
-                                   group-focus-within:text-yellow-400 transition-colors"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-yellow-400 transition-colors"
                       size={20}
                     />
                     <input
@@ -517,23 +543,16 @@ export default function UserSignIn() {
                       value={forgotPasswordEmail}
                       onChange={(e) => setForgotPasswordEmail(e.target.value)}
                       placeholder="Enter your email address"
-                      className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 
-                               rounded-xl text-white placeholder-gray-400 focus:outline-none 
-                               focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 
-                               transition-all"
+                      className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-yellow-400/50 focus:ring-2 focus:ring-yellow-400/20 transition-all"
                     />
                   </div>
 
-                  {/* Submit Button */}
                   <motion.button
                     type="submit"
                     disabled={forgotPasswordLoading}
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 
-                             to-orange-500 text-[#1a1f37] font-semibold flex items-center 
-                             justify-center space-x-2 hover:shadow-lg hover:shadow-yellow-500/25 
-                             transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-yellow-400 to-orange-500 text-[#1a1f37] font-semibold flex items-center justify-center space-x-2 hover:shadow-lg hover:shadow-yellow-500/25 transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                   >
                     {forgotPasswordLoading ? (
                       <>
@@ -569,11 +588,9 @@ export default function UserSignIn() {
               <div className="text-6xl mb-3 flex justify-center">
                 {modal.success ? "🎉" : "⚠️"}
               </div>
-
               <p className="text-gray-300 text-center mb-6 px-2">
                 {modal.message}
               </p>
-
               {!modal.success && (
                 <motion.button
                   whileHover={{ scale: 1.03 }}
@@ -588,7 +605,6 @@ export default function UserSignIn() {
           </motion.div>
         )}
       </AnimatePresence>
-      <ChatBot />
     </div>
   );
 }

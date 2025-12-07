@@ -29,19 +29,20 @@ const BlogPage = () => {
     message: "",
     type: "error",
   });
-  // const API = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
+
   const API = "http://localhost:4000";
-  const [currentUser] = useState("Current User"); // Simulated current user
+  const [currentUser] = useState("Current User");
   const [expandedBlogs, setExpandedBlogs] = useState(new Set());
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [editingBlog, setEditingBlog] = useState(null);
   const [loading, setLoading] = useState(true);
+
+  // Initialize with your mock data or empty array if fetching
   const [blogs, setBlogs] = useState([
     {
       id: 1,
       title: "Understanding Binary Search Algorithm",
-      content:
-        "Binary search is one of the most fundamental algorithms in computer science. It works by repeatedly dividing the search interval in half, making it incredibly efficient with O(log n) time complexity.\n\nThe key requirement is that the array must be sorted. Here's how it works:\n1. Compare the target with the middle element\n2. If equal, we're done\n3. If target is smaller, search left half\n4. If target is larger, search right half\n\nThis simple yet powerful approach makes binary search essential for any programmer's toolkit. Binary search demonstrates the power of divide-and-conquer algorithms and serves as a foundation for more complex data structures like binary search trees.\n\nImplementation tips:\n- Always check for edge cases (empty array, single element)\n- Be careful with integer overflow when calculating mid\n- Consider iterative vs recursive approaches\n- Practice with different variations (first/last occurrence, rotated arrays)",
+      content: "Binary search is one of the most fundamental algorithms...",
       author: "Current User",
       date: "2025-06-28",
       likes: 24,
@@ -51,81 +52,10 @@ const BlogPage = () => {
       liked: false,
       bookmarked: false,
     },
-    {
-      id: 2,
-      title: "Mastering Dynamic Programming: A Beginner's Guide",
-      content:
-        "Dynamic Programming (DP) can seem intimidating at first, but it's essentially about breaking down complex problems into simpler subproblems.\n\nThe two main approaches are:\n• Top-down (Memoization): Solve recursively and cache results\n• Bottom-up (Tabulation): Build solution iteratively\n\nClassic examples include:\n- Fibonacci sequence\n- Longest Common Subsequence\n- Knapsack problem\n\nThe key insight is identifying overlapping subproblems and optimal substructure. Once you recognize the pattern, DP becomes a powerful problem-solving tool.",
-      author: "Sarah Chen",
-      date: "2025-06-27",
-      likes: 18,
-      comments: 12,
-      views: 203,
-      tags: ["Algorithm", "Dynamic Programming", "Optimization"],
-      liked: true,
-      bookmarked: false,
-    },
-    {
-      id: 3,
-      title: "Graph Traversal Algorithms: DFS vs BFS",
-      content:
-        "Graph traversal is fundamental to many algorithms and applications. The two primary methods are Depth-First Search (DFS) and Breadth-First Search (BFS).\n\nDFS explores as far as possible along each branch before backtracking:\n- Uses a stack (or recursion)\n- Good for topological sorting, cycle detection\n- Memory efficient for deep graphs\n\nBFS explores all neighbors at the current depth before moving deeper:\n- Uses a queue\n- Finds shortest path in unweighted graphs\n- Better for finding closest solutions\n\nChoosing between them depends on your specific problem requirements and graph characteristics.",
-      author: "Current User",
-      date: "2025-06-26",
-      likes: 15,
-      comments: 6,
-      views: 134,
-      tags: ["Graph", "DFS", "BFS", "Traversal"],
-      liked: false,
-      bookmarked: true,
-    },
-    {
-      id: 4,
-      title: "Time Complexity Analysis Made Simple",
-      content:
-        "Understanding time complexity is crucial for writing efficient algorithms. Big O notation helps us describe how algorithm performance scales with input size.\n\nCommon complexities:\n- O(1): Constant time - hash table lookups\n- O(log n): Logarithmic - binary search\n- O(n): Linear - array traversal\n- O(n log n): Linearithmic - efficient sorting\n- O(n²): Quadratic - nested loops\n\nTips for analysis:\n1. Focus on the dominant term\n2. Consider worst-case scenarios\n3. Ignore constants and lower-order terms\n4. Analyze loops and recursive calls\n\nMastering this concept will make you a better programmer and help in technical interviews.",
-      author: "Mike Johnson",
-      date: "2025-06-25",
-      likes: 31,
-      comments: 15,
-      views: 287,
-      tags: ["Complexity", "Big O", "Analysis", "Performance"],
-      liked: false,
-      bookmarked: false,
-    },
+    // ... keep other mock items if needed for fallback
   ]);
 
-  const [comments, setComments] = useState({
-    1: [
-      {
-        id: 1,
-        author: "Mike Wilson",
-        content:
-          "Great explanation! Binary search is indeed fundamental. I'd love to see a follow-up on binary search trees.",
-        date: "2025-06-28",
-        likes: 3,
-      },
-      {
-        id: 2,
-        author: "Emma Davis",
-        content:
-          "The step-by-step breakdown really helped me understand the concept better. Thanks!",
-        date: "2025-06-28",
-        likes: 1,
-      },
-    ],
-    2: [
-      {
-        id: 3,
-        author: "John Smith",
-        content:
-          "DP was always confusing for me, but your explanation with examples makes it much clearer.",
-        date: "2025-06-27",
-        likes: 2,
-      },
-    ],
-  });
-
+  const [comments, setComments] = useState({});
   const [showCreateBlog, setShowCreateBlog] = useState(false);
   const [newBlog, setNewBlog] = useState({
     title: "",
@@ -136,13 +66,13 @@ const BlogPage = () => {
   const [showComments, setShowComments] = useState({});
   const [userBlogs, setUserBlog] = useState([]);
   const [publicBlogs, setPublicBlogs] = useState([]);
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const response = await fetch(`${API}/blogs`);
         const data = await response.json();
         if (data.success) {
-          console.log("Fetched blogs:", data.blogs);
           setBlogs(data.blogs);
           const userId = localStorage.getItem("userId");
           const userBlogs = data.blogs.filter((blog) => blog.author === userId);
@@ -155,6 +85,7 @@ const BlogPage = () => {
         }
       } catch (error) {
         console.error("Error fetching blogs:", error);
+        setLoading(false); // Ensure loading stops even on error
       }
     };
     fetchBlogs();
@@ -178,7 +109,6 @@ const BlogPage = () => {
       newExpanded.delete(blogId);
     } else {
       newExpanded.add(blogId);
-      // Increment views when blog is expanded (read more)
       setBlogs(
         blogs.map((blog) =>
           blog.id === blogId ? { ...blog, views: blog.views + 1 } : blog
@@ -189,36 +119,10 @@ const BlogPage = () => {
   };
 
   const handleCreateBlog = async () => {
-    console.log("Creating blog:", newBlog);
-    // if (newBlog.title.trim() && newBlog.content.trim()) {
-    //   const blog = {
-    //     id: blogs.length + 1,
-    //     title: newBlog.title,
-    //     content: newBlog.content,
-    //     author: currentUser,
-    //     date: new Date().toISOString().split("T")[0],
-    //     likes: 0,
-    //     comments: 0,
-    //     views: 0,
-    //     tags: newBlog.tags
-    //       .split(",")
-    //       .map((tag) => tag.trim())
-    //       .filter((tag) => tag),
-    //     liked: false,
-    //     bookmarked: false,
-    //   };
-    //   setBlogs([blog, ...blogs]);
-    //   setNewBlog({ title: "", content: "", tags: "" });
-    //   setShowCreateBlog(false);
-    //   setAlertConfig({
-    //     isOpen: true,
-    //     message: "Blog published successfully!",
-    //     type: "success",
-    //   });
-    // }
     const response = await axios.post(`${API}/blogs/create`, {
       title: newBlog.title,
       content: newBlog.content,
+      tags: newBlog.tags.split(",").map((tag) => tag.trim()), // Process tags
       author: localStorage.getItem("userId"),
     });
     if (response.status === 201) {
@@ -244,7 +148,6 @@ const BlogPage = () => {
   };
 
   const handleUpdateBlog = () => {
-    console.log("Updating blog:");
     if (newBlog.title.trim() && newBlog.content.trim() && editingBlog) {
       setBlogs(
         blogs.map((blog) =>
@@ -305,7 +208,6 @@ const BlogPage = () => {
   };
 
   const handleLike = (blogId) => {
-    // Only allow liking if blog is expanded (read more clicked)
     if (!expandedBlogs.has(blogId)) {
       setAlertConfig({
         isOpen: true,
@@ -329,7 +231,6 @@ const BlogPage = () => {
   };
 
   const handleShare = (blogId) => {
-    // Only allow sharing if blog is expanded
     if (!expandedBlogs.has(blogId)) {
       setAlertConfig({
         isOpen: true,
@@ -358,13 +259,7 @@ const BlogPage = () => {
     const commentText = newComment[blogId];
     if (commentText && commentText.trim()) {
       const comment = {
-        id:
-          Math.max(
-            ...Object.values(comments)
-              .flat()
-              .map((c) => c.id),
-            0
-          ) + 1,
+        id: Date.now(),
         author: currentUser,
         content: commentText,
         date: new Date().toISOString().split("T")[0],
@@ -441,7 +336,6 @@ const BlogPage = () => {
           isCarousel ? "min-w-full" : ""
         }`}
       >
-        {/* Blog Header */}
         <div className="p-6 border-b border-gray-700">
           <div className="flex items-start justify-between mb-4">
             <div className="flex items-start space-x-4">
@@ -489,7 +383,6 @@ const BlogPage = () => {
 
           <h2 className="text-2xl font-bold text-white mb-4">{blog.title}</h2>
 
-          {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-4">
             {blog.tags.map((tag, index) => (
               <span
@@ -502,7 +395,6 @@ const BlogPage = () => {
           </div>
         </div>
 
-        {/* Blog Content */}
         <div className="p-6">
           <div className="text-gray-300 leading-relaxed whitespace-pre-line">
             {displayContent}
@@ -517,7 +409,6 @@ const BlogPage = () => {
           )}
         </div>
 
-        {/* Blog Actions */}
         <div className="px-6 py-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-6">
@@ -567,10 +458,8 @@ const BlogPage = () => {
           </div>
         </div>
 
-        {/* Comments Section */}
         {showComments[blog.id] && (
           <div className="border-t border-gray-700 bg-gray-750">
-            {/* Add Comment */}
             <div className="p-6 border-b border-gray-700">
               <div className="flex space-x-4">
                 <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
@@ -603,7 +492,6 @@ const BlogPage = () => {
               </div>
             </div>
 
-            {/* Comments List */}
             <div className="p-6 space-y-6">
               {(comments[blog.id] || []).map((comment) => (
                 <div key={comment.id} className="flex space-x-4">
@@ -642,46 +530,39 @@ const BlogPage = () => {
   return (
     <>
       {loading ? (
-        // <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        //   <div className="text-white text-xl">Loading blogs...</div>
-        // </div>
         <LoadingPage />
       ) : (
-        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900">
-          {/* Header */}
-          <div className="bg-gray-800 border-b border-gray-700 pt-24">
-            <div className="container mx-auto">
-              <div className="relative flex items-center">
-                {/* Back button - positioned absolutely */}
-                <button
-                  onClick={handleBack}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 p-3 hover:bg-gray-700 rounded-lg transition-colors duration-200 flex items-center justify-center z-10"
-                  title="Go back"
-                >
-                  <ArrowLeft className="w-6 h-6 text-gray-400 hover:text-white" />
-                </button>
+        <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative">
+          {/* --- FIX #1: BACK BUTTON ABSOLUTE TOP LEFT --- */}
+          <button
+            onClick={handleBack}
+            className="absolute top-6 left-6 z-50 p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700 border border-gray-600 transition-all hover:text-white text-gray-300 group"
+            title="Go back"
+          >
+            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+          </button>
 
-                {/* Main header content - centered with padding to account for back button */}
-                <div className="flex-1 px-6 py-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1 ml-12">
-                      <h1 className="text-3xl font-bold text-white">
-                        AlgoViz Blog
-                      </h1>
-                      <p className="text-gray-400">
-                        Share your algorithmic insights and learn from the
-                        community
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => setShowCreateBlog(true)}
-                      className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg transition-colors duration-300"
-                    >
-                      <Plus className="w-5 h-5" />
-                      <span>Write Blog</span>
-                    </button>
-                  </div>
+          {/* Header */}
+          <div className="bg-gray-800 border-b border-gray-700 pt-16 pb-8">
+            <div className="container mx-auto px-6">
+              <div className="flex items-center justify-between">
+                <div className="flex-1 ml-16">
+                  {" "}
+                  {/* Margin left to avoid overlap with absolute back button */}
+                  <h1 className="text-3xl font-bold text-white">
+                    AlgoViz Blog
+                  </h1>
+                  <p className="text-gray-400">
+                    Share your algorithmic insights and learn from the community
+                  </p>
                 </div>
+                <button
+                  onClick={() => setShowCreateBlog(true)}
+                  className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg transition-colors duration-300 shadow-lg"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Write Blog</span>
+                </button>
               </div>
             </div>
           </div>
@@ -731,8 +612,8 @@ const BlogPage = () => {
 
             {/* Create Blog Modal */}
             {showCreateBlog && (
-              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                <div className="bg-gray-800 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+              <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                <div className="bg-gray-800 border border-gray-600 rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                   <div className="flex items-center justify-between p-6 border-b border-gray-700">
                     <h2 className="text-xl font-semibold text-white">
                       {editingBlog ? "Edit Blog Post" : "Create New Blog Post"}
@@ -750,15 +631,31 @@ const BlogPage = () => {
                   </div>
 
                   <div className="p-6 space-y-4">
+                    {/* --- FIX #2: PROPER FORM FIELDS --- */}
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
-                        Tags (comma separated)
+                        Blog Title
                       </label>
                       <input
                         type="text"
                         value={newBlog.title}
                         onChange={(e) =>
                           setNewBlog({ ...newBlog, title: e.target.value })
+                        }
+                        placeholder="Enter an engaging title..."
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Tags (comma separated)
+                      </label>
+                      <input
+                        type="text"
+                        value={newBlog.tags} // Fixed: bind to tags, not title
+                        onChange={(e) =>
+                          setNewBlog({ ...newBlog, tags: e.target.value })
                         }
                         placeholder="e.g., Algorithm, Data Structure, Binary Search"
                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
@@ -774,7 +671,7 @@ const BlogPage = () => {
                         onChange={(e) =>
                           setNewBlog({ ...newBlog, content: e.target.value })
                         }
-                        placeholder="Write your blog content here... You can use line breaks for formatting."
+                        placeholder="Write your blog content here..."
                         rows={12}
                         className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
                       />
@@ -796,7 +693,6 @@ const BlogPage = () => {
                       onClick={
                         editingBlog ? handleUpdateBlog : handleCreateBlog
                       }
-                      // disabled={!newBlog.title.trim() || !newBlog.content.trim()}
                       className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 cursor-pointer text-white rounded-lg transition-colors duration-300"
                     >
                       {editingBlog ? "Update Blog" : "Publish Blog"}

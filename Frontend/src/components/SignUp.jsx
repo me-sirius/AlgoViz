@@ -19,14 +19,15 @@ import {
   Atom,
   BookOpen,
 } from "lucide-react";
-// import { useAuth } from "../context/UserContext";
 import { useGoogleLogin } from "@react-oauth/google";
 import { AuthContext } from "../context/UserContext";
 import ChatBot from "./ChatBot";
-// const { user, isAuthenticated, logout } = useAuth();
-// const API_BASE_URL = "http://localhost:4000";
+import Alert from "./Alert"; // Ensure you have this component
+
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+
+// --- Sub-Components ---
 
 const EmailSignupForm = memo(
   ({
@@ -36,7 +37,6 @@ const EmailSignupForm = memo(
     showPassword,
     setShowPassword,
     loading,
-    onBack,
     handleBackToSocial,
     otpSent,
     passwordValidation,
@@ -278,15 +278,16 @@ function OtpVerificationForm({
   otp,
   otpInputs,
   otpError,
-  setModal,
 }) {
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
+
   const handleBackToForm = () => {
     setShowOtpInput(false);
     setOtp(["", "", "", "", "", ""]);
     setOtpError("");
   };
+
   useEffect(() => {
     let timer;
     if (countdown > 0) {
@@ -299,6 +300,7 @@ function OtpVerificationForm({
 
     return () => clearInterval(timer);
   }, [countdown]);
+
   const handleResendOtp = async () => {
     try {
       setCanResend(false);
@@ -558,10 +560,13 @@ function SocialLoginOptions({
   );
 }
 
+// --- Main Component ---
+
 export default function UserSignUp() {
   const navigate = useNavigate();
-  // const { setIsAuthenticated } = useContext(AuthContext);
+  const { setUser, setIsAuthenticated } = useContext(AuthContext);
 
+  // States
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -586,43 +591,27 @@ export default function UserSignUp() {
     hasNumber: false,
     hasSpecial: false,
   });
-  const { setUser, setIsAuthenticated } = useContext(AuthContext);
   const [modal, setModal] = useState({
     open: false,
     success: false,
     message: "",
   });
   const [otpSent, setOtpSent] = useState(false);
-  // Google OAuth Configuration
+  const [alertConfig, setAlertConfig] = useState({
+    isOpen: false,
+    message: "",
+    type: "error",
+    customButtons: null,
+  });
+
+  // Google OAuth
   const googleLogin = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
     onError: handleGoogleError,
-    flow: "auth-code", // Changed to auth-code for better security
+    flow: "auth-code",
     scope: "email profile",
   });
-  const handleBack = () => {
-    setAlertConfig({
-      isOpen: true,
-      message: "Are you sure you want to leave? Your progress will be lost.",
-      type: "warning",
-      customButtons: (
-        <div className="flex space-x-4 justify-center ">
-          <button
-            onClick={() => navigate("/")}
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            Leave
-          </button>
-          <button
-            onClick={closeAlert}
-            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
-          >
-            Stay
-          </button>
-        </div>
-      ),
-    });
-  };
+
   const checkPasswordStrength = (password, confirmPassword) => {
     setPasswordValidation({
       hasLength: password.length >= 8,
@@ -633,36 +622,31 @@ export default function UserSignUp() {
       passwordsMatch: password === confirmPassword && password !== "",
     });
   };
+
   const isPasswordValid = Object.values(passwordValidation).every(
     (value) => value
   );
-  // Google OAuth Success Handler
+
   async function handleGoogleSuccess(codeResponse) {
     setSocialLoading((prev) => ({ ...prev, google: true }));
-
     try {
-      // Send the authorization code to your backend
       const response = await axios.post(`${API_BASE_URL}/users/google-auth`, {
         code: codeResponse.code,
       });
 
       if (response.data.token) {
-        // Store authentication data
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", response.data.user.id);
         setIsAuthenticated(true);
         setUser(response.data.user);
-        console.log("Google OAuth Response:", response.data);
         setModal({
           open: true,
           success: true,
           message: "Google signup successful! Redirecting...",
         });
-
         setTimeout(() => navigate("/"), 2000);
       }
     } catch (error) {
-      console.error("Google OAuth Error:", error);
       setModal({
         open: true,
         success: false,
@@ -675,7 +659,6 @@ export default function UserSignUp() {
     }
   }
 
-  // Google OAuth Error Handler
   function handleGoogleError(error) {
     console.error("Google OAuth Error:", error);
     setModal({
@@ -685,13 +668,8 @@ export default function UserSignUp() {
     });
   }
 
-  // Trigger Google OAuth
   const handleGoogleSignup = () => {
     googleLogin();
-  };
-
-  const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
   const handleChange = (e) => {
@@ -710,52 +688,8 @@ export default function UserSignUp() {
 
   const handleBackToSocial = () => {
     setShowEmailForm(false);
-    setFormData({ name: "", email: "", password: "" });
+    setFormData({ name: "", email: "", password: "", confirmPassword: "" });
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   setLoading(true);
-  //   setOtpError("");
-
-  //   if (!isValidEmail(formData.email)) {
-  //     setModal({
-  //       open: true,
-  //       success: false,
-  //       message: "Please enter a valid email address.",
-  //     });
-  //     setLoading(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     const response = await axios.post(`${API_BASE_URL}/send-otp`, {
-  //       email: formData.email,
-  //       name: formData.name,
-  //     });
-
-  //     if (response.status === 200) {
-  //       setModal({
-  //         open: true,
-  //         success: true,
-  //         message: "OTP has been sent to your email!",
-  //         action: () => {
-  //           setShowOtpInput(true);
-  //           setModal({ open: false, success: false, message: "" });
-  //         },
-  //         actionText: "Enter OTP",
-  //       });
-  //     }
-  //   } catch (error) {
-  //     setModal({
-  //       open: true,
-  //       success: false,
-  //       message: error.response?.data?.message || "Failed to send OTP",
-  //     });
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -771,6 +705,7 @@ export default function UserSignUp() {
         success: false,
         message: "Please ensure all password requirements are met.",
       });
+      setLoading(false);
       return;
     }
 
@@ -780,8 +715,10 @@ export default function UserSignUp() {
         success: false,
         message: "Passwords do not match.",
       });
+      setLoading(false);
       return;
     }
+
     try {
       const response = await axios.post(`${API_BASE_URL}/users/send-otp`, {
         email: formData.email,
@@ -791,7 +728,6 @@ export default function UserSignUp() {
       if (response.status === 200) {
         setOtpSent(true);
         setShowOtpInput(true);
-        // Focus first OTP input after a short delay
         setTimeout(() => {
           if (otpInputs.current[0]) {
             otpInputs.current[0].focus();
@@ -804,19 +740,17 @@ export default function UserSignUp() {
       setLoading(false);
     }
   };
+
   const handleOtpChange = (index, value) => {
     const char = value.slice(-1);
-
     setOtp((prev) => {
       const newOtp = [...prev];
       newOtp[index] = char;
-
       if (char && index < 5) {
         setTimeout(() => {
           otpInputs.current[index + 1]?.focus();
         }, 0);
       }
-
       return newOtp;
     });
   };
@@ -827,7 +761,6 @@ export default function UserSignUp() {
         e.preventDefault();
         setOtp((prev) => {
           const newOtp = [...prev];
-
           if (!newOtp[index] && index > 0) {
             newOtp[index - 1] = "";
             setTimeout(() => {
@@ -836,18 +769,15 @@ export default function UserSignUp() {
           } else {
             newOtp[index] = "";
           }
-
           return newOtp;
         });
         break;
-
       case "ArrowLeft":
         e.preventDefault();
         if (index > 0) {
           otpInputs.current[index - 1]?.focus();
         }
         break;
-
       case "ArrowRight":
         e.preventDefault();
         if (index < 5) {
@@ -869,21 +799,17 @@ export default function UserSignUp() {
         name: formData.name,
         password: formData.password,
       });
-      console.log(response);
+
       if (response.status === 201) {
-        console.log("yes aaya hu");
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("userId", response.data.user._id);
-        // setIsAuthenticated(true);
-        // setUser(response.)
-        console.log("yes aaya h1u");
-        console.log(response);
+        setIsAuthenticated(true);
+        setUser(response.data.user);
         setModal({
           open: true,
           success: true,
           message: "Account created successfully! Redirecting...",
         });
-
         setTimeout(() => navigate("/"), 2000);
       }
     } catch (error) {
@@ -902,16 +828,48 @@ export default function UserSignUp() {
     setModal({ open: false, success: false, message: "" });
   };
 
+  const handleBack = () => {
+    setAlertConfig({
+      isOpen: true,
+      message: "Are you sure you want to leave? Your progress will be lost.",
+      type: "warning",
+      customButtons: (
+        <div className="flex space-x-4 justify-center">
+          <button
+            onClick={() => navigate("/")}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Leave
+          </button>
+          <button
+            onClick={() =>
+              setAlertConfig((prev) => ({ ...prev, isOpen: false }))
+            }
+            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Stay
+          </button>
+        </div>
+      ),
+    });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2c3250] flex items-center justify-center p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-[#1a1f37] to-[#2c3250] flex items-center justify-center p-4 md:p-8 relative">
+      {/* --- CORRECTED BACK BUTTON POSITIONING --- */}
       <button
         onClick={handleBack}
-        className="mb-6 flex items-center text-gray-400 hover:text-white transition-colors duration-200"
+        className="absolute top-6 left-6 z-50 p-2 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 border border-gray-700/50 transition-all hover:text-white text-gray-400 group"
+        title="Go back"
       >
-        <ArrowLeft className="w-5 h-5 mr-2" />
-        <span>Back</span>
+        <ArrowLeft
+          size={24}
+          className="group-hover:-translate-x-0.5 transition-transform"
+        />
       </button>
-      <div className="absolute inset-0 overflow-hidden">
+
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-yellow-400/20 to-transparent rounded-full blur-3xl transform rotate-12 opacity-20" />
         <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-orange-500/20 to-transparent rounded-full blur-3xl transform -rotate-12 opacity-20" />
       </div>
@@ -922,28 +880,41 @@ export default function UserSignUp() {
         transition={{ duration: 0.5 }}
         className="relative w-full max-w-4xl mx-auto bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden flex border border-white/20"
       >
-        {/* Left Panel with adjusted sizes and spacing */}
-        <div className="w-1/2 hidden lg:flex items-center justify-center p-12 relative">
-          {/* Background remains the same */}
+        {/* --- CORRECTED LEFT PANEL ANIMATION LOGIC --- */}
+        <div className="w-1/2 hidden lg:flex items-center justify-center p-12 relative overflow-hidden">
+          {/* Background Gradient */}
           <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/10 to-orange-500/10 backdrop-blur-sm" />
 
-          {/* Particles with adjusted size */}
-          <div className="absolute inset-0 overflow-hidden">
-            {[...Array(30)].map((_, i) => (
+          {/* Alert Component */}
+          <Alert
+            isOpen={alertConfig.isOpen}
+            message={alertConfig.message}
+            type={alertConfig.type}
+            onClose={() =>
+              setAlertConfig((prev) => ({ ...prev, isOpen: false }))
+            }
+            customButtons={alertConfig.customButtons}
+          />
+
+          {/* Floating Particles Background */}
+          <div className="absolute inset-0 pointer-events-none">
+            {[...Array(20)].map((_, i) => (
               <motion.div
                 key={i}
                 className="absolute w-1 h-1 bg-yellow-400/30 rounded-full"
+                initial={{
+                  x: Math.random() * 400 - 200,
+                  y: Math.random() * 400 - 200,
+                  opacity: 0,
+                }}
                 animate={{
-                  y: [0, Math.random() * 300 - 150], // Reduced range
-                  x: [0, Math.random() * 300 - 150], // Reduced range
-                  scale: [1, Math.random() * 2], // Reduced scale
-                  opacity: [0.3, 0.6, 0.3],
+                  y: [null, Math.random() * 100 - 50],
+                  opacity: [0.2, 0.5, 0.2],
                 }}
                 transition={{
                   duration: Math.random() * 5 + 3,
                   repeat: Infinity,
                   repeatType: "reverse",
-                  ease: "easeInOut",
                 }}
                 style={{
                   left: `${Math.random() * 100}%`,
@@ -953,158 +924,113 @@ export default function UserSignUp() {
             ))}
           </div>
 
-          {/* Main content container with better spacing */}
-          <div className="relative z-10 space-y-8">
-            {" "}
-            {/* Reduced spacing */}
-            {/* Animated hero element with adjusted size */}
-            <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.7, delay: 0.2 }}
-              className="relative w-48 h-48 mx-auto" // Fixed size container
-            >
-              {/* Rotating circles with adjusted size */}
+          <div className="relative z-10 flex flex-col items-center justify-center h-full space-y-8">
+            {/* Solar System Animation Container */}
+            <div className="relative w-64 h-64 flex items-center justify-center">
+              {/* Outer Rings - Spinning */}
               <motion.div
+                className="absolute inset-0 rounded-full border border-white/10"
                 animate={{ rotate: 360 }}
                 transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0"
-              >
-                {[...Array(3)].map((_, i) => (
-                  <motion.div
-                    key={i}
-                    className="absolute inset-0 rounded-full border-2 border-yellow-400/20"
-                    style={{
-                      transform: `scale(${1 - i * 0.1}) rotate(${i * 30}deg)`,
-                    }}
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 10 + i * 5,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  />
-                ))}
-              </motion.div>
-
-              {/* Central icon with reduced size */}
+              />
               <motion.div
-                animate={{ scale: [1, 1.1, 1] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                   bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-full 
-                   shadow-lg shadow-orange-500/30 backdrop-blur-md"
+                className="absolute inset-8 rounded-full border border-white/10"
+                animate={{ rotate: -360 }}
+                transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+              />
+
+              {/* Center User Icon */}
+              <motion.div
+                className="relative z-20 bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-full shadow-lg shadow-orange-500/30"
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity }}
               >
-                <User className="w-8 h-8 text-white" />{" "}
-                {/* Reduced icon size */}
+                <User className="w-8 h-8 text-white" />
               </motion.div>
 
-              {/* Orbiting elements with adjusted radius */}
-              {[
-                { Icon: Brain, color: "from-blue-400 to-blue-500", delay: 0 },
-                {
-                  Icon: Star,
-                  color: "from-purple-400 to-purple-500",
-                  delay: 1.5,
-                },
-                {
-                  Icon: BookOpen,
-                  color: "from-green-400 to-green-500",
-                  delay: 3,
-                },
-              ].map(({ Icon, color, delay }, index) => {
-                const angle = (index * Math.PI * 2) / 3;
-                const radius = 60; // Reduced orbit radius
-                const x = Math.cos(angle) * radius;
-                const y = Math.sin(angle) * radius;
-
-                return (
-                  <motion.div
-                    key={index}
-                    className="absolute"
-                    style={{
-                      left: "50%",
-                      top: "50%",
-                    }}
-                    animate={{
-                      x: [x, x],
-                      y: [y, y],
-                      rotate: 360,
-                    }}
-                    transition={{
-                      rotate: {
-                        duration: 8,
-                        delay,
-                        repeat: Infinity,
-                        ease: "linear",
-                      },
-                    }}
-                  >
+              {/* Orbiting Icons */}
+              {/* We rotate the CONTAINER, then counter-rotate the CHILDREN to keep them upright */}
+              <motion.div
+                className="absolute inset-0"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+              >
+                {[
+                  { Icon: Brain, color: "from-blue-400 to-blue-500" },
+                  { Icon: Star, color: "from-purple-400 to-purple-500" },
+                  { Icon: BookOpen, color: "from-green-400 to-green-500" },
+                ].map(({ Icon, color }, index) => {
+                  const angle = (index * 360) / 3; // Evenly spaced (0, 120, 240)
+                  return (
                     <motion.div
-                      className={`bg-gradient-to-r ${color} p-2 rounded-lg 
-                         shadow-lg backdrop-blur-sm`} // Reduced padding
-                      whileHover={{ scale: 1.2, rotate: 360 }}
-                      transition={{ type: "spring", stiffness: 300 }}
+                      key={index}
+                      className="absolute top-1/2 left-1/2 w-10 h-10 -ml-5 -mt-5"
+                      style={{
+                        transform: `rotate(${angle}deg) translate(100px) rotate(-${angle}deg)`,
+                      }}
                     >
-                      <Icon className="w-4 h-4 text-white" />{" "}
-                      {/* Reduced icon size */}
+                      {/* The counter-rotation happens inside the child to negate parent spin */}
+                      <motion.div
+                        animate={{ rotate: -360 }}
+                        transition={{
+                          duration: 25,
+                          repeat: Infinity,
+                          ease: "linear",
+                        }}
+                        className={`w-full h-full flex items-center justify-center bg-gradient-to-r ${color} rounded-lg shadow-lg`}
+                      >
+                        <Icon className="w-5 h-5 text-white" />
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                );
-              })}
-            </motion.div>
-            {/* Welcome text with better spacing */}
+                  );
+                })}
+              </motion.div>
+            </div>
+
+            {/* Text Content */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5 }}
-              className="text-center space-y-3" // Reduced spacing
+              className="text-center space-y-3"
             >
-              <div className="inline-block px-3 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm">
+              <div className="inline-block px-3 py-1 rounded-full bg-white/10 border border-white/20">
                 <span className="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent text-sm font-medium">
                   Start Your Journey
                 </span>
               </div>
               <h2 className="text-2xl font-bold text-white">
-                {" "}
-                {/* Reduced text size */}
                 Join AlgoViz Today
               </h2>
               <p className="text-gray-300 text-sm max-w-[250px] mx-auto">
-                {" "}
-                {/* Reduced width */}
-                Unlock your potential with interactive visualization and join
-                our community
+                Unlock your potential with interactive visualization
               </p>
             </motion.div>
-            {/* Features list with adjusted spacing */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.7 }}
-              className="space-y-2" // Reduced spacing
-            >
+
+            {/* Feature List */}
+            <motion.div className="space-y-2">
               {[
-                "Interactive Learning Experience",
-                "Track Your Progress",
-                "Join Global Community",
+                "Interactive Learning",
+                "Track Progress",
+                "Global Community",
               ].map((feature, index) => (
                 <motion.div
                   key={feature}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.8 + index * 0.1 }}
-                  className="flex items-center gap-2 text-gray-300 text-sm" // Added text-sm
+                  className="flex items-center gap-2 text-gray-300 text-sm"
                 >
-                  <CheckCircle className="w-4 h-4 text-yellow-400" />{" "}
-                  {/* Reduced icon size */}
+                  <CheckCircle className="w-4 h-4 text-yellow-400" />
                   <span>{feature}</span>
                 </motion.div>
               ))}
             </motion.div>
           </div>
         </div>
-        <div className="w-full lg:w-1/2 p-8 md:p-12">
+
+        {/* Right Panel - Form Area */}
+        <div className="w-full lg:w-1/2 p-8 md:p-12 relative">
           <AnimatePresence mode="wait">
             {showOtpInput ? (
               <OtpVerificationForm
@@ -1131,7 +1057,6 @@ export default function UserSignUp() {
                 showPassword={showPassword}
                 setShowPassword={setShowPassword}
                 loading={loading}
-                onBack={() => setShowEmailForm(false)}
                 handleBackToSocial={handleBackToSocial}
                 otpSent={otpSent}
                 passwordValidation={passwordValidation}
@@ -1151,6 +1076,7 @@ export default function UserSignUp() {
         </div>
       </motion.div>
 
+      {/* Global Modals */}
       <AnimatePresence>
         {modal.open && (
           <motion.div
@@ -1164,8 +1090,8 @@ export default function UserSignUp() {
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
-              className="bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl w-full 
-                  max-w-md p-8 border border-white/20"
+              className="bg-gray-800/90 backdrop-blur-xl rounded-3xl shadow-2xl w-full 
+                  max-w-md p-8 border border-white/10"
             >
               <div className="text-6xl mb-4 flex justify-center">
                 {modal.success ? "🎉" : "😢"}
@@ -1188,7 +1114,6 @@ export default function UserSignUp() {
           </motion.div>
         )}
       </AnimatePresence>
-      <ChatBot />
     </div>
   );
 }
