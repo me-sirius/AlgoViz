@@ -47,6 +47,7 @@ import AboutPage from "./components/AboutPage";
 import UserProfilePage from "./components/UserProfilePage";
 import MainLayout from "./components/MainLayout";
 import IDEPage from "./components/PracticeIDE";
+import LearningPathPage from "./components/LearningPathPage";
 
 function App() {
   return (
@@ -109,6 +110,7 @@ function App() {
         <Route path="/page-not-found" element={<NotFoundPage />} />
         <Route path="*" element={<NotFoundPage />} />
         <Route path="/IDE" element={<IDEPage />} />
+        <Route path="/dashboard" element={<LearningPathPage />} />
       </Routes>
     </>
   );
