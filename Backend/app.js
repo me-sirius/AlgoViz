@@ -8,6 +8,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 const userRoutes = require("./routes/user.route");
+const blogRoutes = require("./routes/blog.route");
 const dbConnect = require("./db/db");
 app.get("/", (req, res) => {
   return res.send("Hello World!");
@@ -15,7 +16,7 @@ app.get("/", (req, res) => {
 dbConnect();
 // Enable user routes
 app.use("/users", userRoutes);
-
+app.use("/blogs", blogRoutes);
 app.listen(process.env.PORT, () => {
   console.log(`Server is running on Port ${process.env.PORT}`);
 });

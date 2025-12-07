@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   MessageSquare,
   Heart,
@@ -20,6 +20,7 @@ import {
   Edit,
 } from "lucide-react";
 import Alert from "./Alert";
+import axios from "axios";
 
 const BlogPage = () => {
   const [alertConfig, setAlertConfig] = useState({
@@ -27,7 +28,8 @@ const BlogPage = () => {
     message: "",
     type: "error",
   });
-
+  // const API = process.env.REACT_APP_API_BASE_URL || "http://localhost:4000";
+  const API = "http://localhost:4000";
   const [currentUser] = useState("Current User"); // Simulated current user
   const [expandedBlogs, setExpandedBlogs] = useState(new Set());
   const [carouselIndex, setCarouselIndex] = useState(0);
@@ -131,7 +133,20 @@ const BlogPage = () => {
   });
   const [newComment, setNewComment] = useState({});
   const [showComments, setShowComments] = useState({});
-
+  useEffect(() => {
+    const fetchBlogs = async () => {
+      try {
+        const response = await fetch(`${API}/blogs`);
+        const data = await response.json();
+        if (data.success) {
+          setBlogs(data.blogs);
+        }
+      } catch (error) {
+        console.error("Error fetching blogs:", error);
+      }
+    };
+    fetchBlogs();
+  }, []);
   // Get user's blogs and public blogs
   const userBlogs = blogs.filter((blog) => blog.author === currentUser);
   const publicBlogs = blogs.filter((blog) => blog.author !== currentUser);
@@ -164,32 +179,48 @@ const BlogPage = () => {
     setExpandedBlogs(newExpanded);
   };
 
-  const handleCreateBlog = () => {
-    if (newBlog.title.trim() && newBlog.content.trim()) {
-      const blog = {
-        id: blogs.length + 1,
-        title: newBlog.title,
-        content: newBlog.content,
-        author: currentUser,
-        date: new Date().toISOString().split("T")[0],
-        likes: 0,
-        comments: 0,
-        views: 0,
-        tags: newBlog.tags
-          .split(",")
-          .map((tag) => tag.trim())
-          .filter((tag) => tag),
-        liked: false,
-        bookmarked: false,
-      };
-      setBlogs([blog, ...blogs]);
-      setNewBlog({ title: "", content: "", tags: "" });
-      setShowCreateBlog(false);
+  const handleCreateBlog = async () => {
+    console.log("Creating blog:", newBlog);
+    // if (newBlog.title.trim() && newBlog.content.trim()) {
+    //   const blog = {
+    //     id: blogs.length + 1,
+    //     title: newBlog.title,
+    //     content: newBlog.content,
+    //     author: currentUser,
+    //     date: new Date().toISOString().split("T")[0],
+    //     likes: 0,
+    //     comments: 0,
+    //     views: 0,
+    //     tags: newBlog.tags
+    //       .split(",")
+    //       .map((tag) => tag.trim())
+    //       .filter((tag) => tag),
+    //     liked: false,
+    //     bookmarked: false,
+    //   };
+    //   setBlogs([blog, ...blogs]);
+    //   setNewBlog({ title: "", content: "", tags: "" });
+    //   setShowCreateBlog(false);
+    //   setAlertConfig({
+    //     isOpen: true,
+    //     message: "Blog published successfully!",
+    //     type: "success",
+    //   });
+    // }
+    const response = await axios.post(`${API}/blogs/create`, {
+      title: newBlog.title,
+      content: newBlog.content,
+      author: localStorage.getItem("userId"),
+    });
+    if (response.status === 201) {
       setAlertConfig({
         isOpen: true,
         message: "Blog published successfully!",
         type: "success",
       });
+      setBlogs([response.data.blog, ...blogs]);
+      setNewBlog({ title: "", content: "", tags: "" });
+      setShowCreateBlog(false);
     }
   };
 
@@ -204,19 +235,20 @@ const BlogPage = () => {
   };
 
   const handleUpdateBlog = () => {
+    console.log("Updating blog:");
     if (newBlog.title.trim() && newBlog.content.trim() && editingBlog) {
       setBlogs(
         blogs.map((blog) =>
           blog.id === editingBlog.id
             ? {
-              ...blog,
-              title: newBlog.title,
-              content: newBlog.content,
-              tags: newBlog.tags
-                .split(",")
-                .map((tag) => tag.trim())
-                .filter((tag) => tag),
-            }
+                ...blog,
+                title: newBlog.title,
+                content: newBlog.content,
+                tags: newBlog.tags
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter((tag) => tag),
+              }
             : blog
         )
       );
@@ -278,10 +310,10 @@ const BlogPage = () => {
       blogs.map((blog) =>
         blog.id === blogId
           ? {
-            ...blog,
-            likes: blog.liked ? blog.likes - 1 : blog.likes + 1,
-            liked: !blog.liked,
-          }
+              ...blog,
+              likes: blog.liked ? blog.likes - 1 : blog.likes + 1,
+              liked: !blog.liked,
+            }
           : blog
       )
     );
@@ -396,8 +428,9 @@ const BlogPage = () => {
     return (
       <article
         key={blog.id}
-        className={`bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden ${isCarousel ? "min-w-full" : ""
-          }`}
+        className={`bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden ${
+          isCarousel ? "min-w-full" : ""
+        }`}
       >
         {/* Blog Header */}
         <div className="p-6 border-b border-gray-700">
@@ -481,10 +514,11 @@ const BlogPage = () => {
             <div className="flex items-center space-x-6">
               <button
                 onClick={() => handleLike(blog.id)}
-                className={`flex items-center space-x-2 transition-colors ${blog.liked
+                className={`flex items-center space-x-2 transition-colors ${
+                  blog.liked
                     ? "text-red-500"
                     : "text-gray-400 hover:text-red-500"
-                  }`}
+                }`}
               >
                 <Heart
                   className={`w-5 h-5 ${blog.liked ? "fill-current" : ""}`}
@@ -511,10 +545,11 @@ const BlogPage = () => {
 
             <button
               onClick={() => handleBookmark(blog.id)}
-              className={`transition-colors ${blog.bookmarked
+              className={`transition-colors ${
+                blog.bookmarked
                   ? "text-yellow-500"
                   : "text-gray-400 hover:text-yellow-500"
-                }`}
+              }`}
             >
               <Bookmark
                 className={`w-5 h-5 ${blog.bookmarked ? "fill-current" : ""}`}
@@ -702,9 +737,9 @@ const BlogPage = () => {
                   </label>
                   <input
                     type="text"
-                    value={newBlog.tags}
+                    value={newBlog.title}
                     onChange={(e) =>
-                      setNewBlog({ ...newBlog, tags: e.target.value })
+                      setNewBlog({ ...newBlog, title: e.target.value })
                     }
                     placeholder="e.g., Algorithm, Data Structure, Binary Search"
                     className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
@@ -740,8 +775,8 @@ const BlogPage = () => {
                 </button>
                 <button
                   onClick={editingBlog ? handleUpdateBlog : handleCreateBlog}
-                  disabled={!newBlog.title.trim() || !newBlog.content.trim()}
-                  className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-300"
+                  // disabled={!newBlog.title.trim() || !newBlog.content.trim()}
+                  className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 cursor-pointer text-white rounded-lg transition-colors duration-300"
                 >
                   {editingBlog ? "Update Blog" : "Publish Blog"}
                 </button>

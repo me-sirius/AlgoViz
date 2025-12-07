@@ -41,6 +41,12 @@ const userSchema = new mongoose.Schema(
     otpExpiry: {
       type: Date,
     },
+    blogs: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Blog",
+      },
+    ],
   },
   { timestamps: true }
 );

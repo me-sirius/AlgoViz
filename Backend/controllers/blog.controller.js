@@ -10,14 +10,25 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-module.exports.fetchAllBlogs = async (req, res) => {
+module.exports.getAllBlogs = async (req, res) => {
   try {
-    const blogs = await Blog.find({ isPublished: true })
-      .populate("author", "name email avatar")
-      .sort({ createdAt: -1 });
+    const blogs = await Blog.find();
     res.status(200).json({ success: true, blogs });
   } catch (error) {
     console.error("Error fetching blogs:", error);
     res.status(500).json({ success: false, message: "Error fetching blogs" });
+  }
+};
+
+module.exports.createBlog = async (req, res) => {
+  console.log("Blog me aaya hu");
+  try {
+    const { title, content, author } = req.body;
+    const newBlog = new Blog({ title, content, author });
+    await newBlog.save();
+    res.status(201).json({ success: true, blog: newBlog });
+  } catch (error) {
+    console.error("Error creating blog:", error);
+    res.status(500).json({ success: false, message: error });
   }
 };

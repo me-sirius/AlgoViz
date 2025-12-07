@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import AlgorithmHomePage from "./components/AlgorithmHomePage";
+import AlgorithmsPage from "./components/AlgorithmsPage";
 import BubbleSort from "./components/algorithms/Arrays and Sorting/BubbleSort";
 import QuickSort from "./components/algorithms/Arrays and Sorting/QuickSort";
 import MergeSort from "./components/algorithms/Arrays and Sorting/MergeSort";
@@ -86,6 +87,7 @@ function App() {
         <Route path="/lcs" element={<LCS />} />
         <Route path="/edit-distance" element={<EditDistance />} />
         <Route path="/coin-change" element={<CoinChange />} />
+        <Route path="/algorithms" element={<AlgorithmsPage />} />
         <Route
           path="/matrix-chain-multiplication"
           element={<MatrixChainMult />}

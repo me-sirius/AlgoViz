@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [token, setToken] = useState(null);
-
+  const [blogs, setBlogs] = useState([]);
   // User activity and preferences
   const [userPreferences, setUserPreferences] = useState({
     theme: "light",
@@ -72,16 +72,24 @@ export function AuthProvider({ children }) {
             `${API_BASE_URL}/getUserDetail/${storedUserId}`,
             {
               headers: {
-                Authorization: `Bearer ${token}`,
+                Authorization: `Bearer ${
+                  localStorage.getItem("token") ||
+                  sessionStorage.getItem("token")
+                }`,
               },
             }
           );
 
           if (response.status === 200) {
+            console.log("Fetched user details:", response.data);
             setUser(response.data);
             setIsAuthenticated(true);
           }
         }
+        // const blogs = await axios.get(`${API_BASE_URL}/blogs`);
+        // if (blogs.status === 200) {
+        //   setBlogs(blogs.data);
+        // }
       } catch (error) {
         console.error("Error fetching user details:", error);
         // Handle error appropriately
