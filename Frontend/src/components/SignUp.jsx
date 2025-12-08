@@ -736,6 +736,11 @@ export default function UserSignUp() {
       }
     } catch (error) {
       setOtpError(error.response?.data?.message || "Failed to send OTP");
+      setModal({
+        open: true,
+        success: false,
+        message: error.response?.data?.message || "Failed to send OTP",
+      });
     } finally {
       setLoading(false);
     }

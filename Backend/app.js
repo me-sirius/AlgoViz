@@ -22,7 +22,7 @@ app.get("/", (req, res) => {
 app.use("/users", userRoutes);
 app.use("/blogs", blogRoutes);
 app.use("/code", codeRoutes);
-
-app.listen(process.env.PORT, () => {
-  console.log(`Server is running on Port ${process.env.PORT}`);
-});
+module.exports = app;
+// app.listen(process.env.PORT, () => {
+//   console.log(`Server is running on Port ${process.env.PORT}`);
+// });

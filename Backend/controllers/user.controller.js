@@ -96,6 +96,7 @@ module.exports.sendOtp = async (req, res, next) => {
     if (user) {
       // If user exists, check if they are already verified
       if (user.isVerified) {
+        console.log("User already verified");
         return res
           .status(400)
           .json({ message: "User already Exist Please Sigin" });
