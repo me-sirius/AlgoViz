@@ -775,7 +775,6 @@ const BlogPage = () => {
               </div>
             )}
           </div>
-
           <Alert
             isOpen={alertConfig.isOpen}
             message={alertConfig.message}

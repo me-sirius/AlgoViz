@@ -84,10 +84,10 @@ export default function UserSignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    console.log("API_BASE_URL:", API_BASE_URL);
-    console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+    // console.log("API_BASE_URL:", API_BASE_URL);
+    // console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
 
-    console.log("Submitting login with credentials:", credentials);
+    // console.log("Submitting login with credentials:", credentials);
 
     try {
       const response = await axios.post(
