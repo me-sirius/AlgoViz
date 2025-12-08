@@ -22,7 +22,14 @@ app.get("/", (req, res) => {
 app.use("/users", userRoutes);
 app.use("/blogs", blogRoutes);
 app.use("/code", codeRoutes);
-module.exports = app;
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`Server is running on Port ${PORT}`);
+  });
+}
+const serverless = require("serverless-http");
+module.exports = serverless(app);
 // app.listen(process.env.PORT, () => {
 //   console.log(`Server is running on Port ${process.env.PORT}`);
 // });
