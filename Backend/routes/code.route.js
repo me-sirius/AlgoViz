@@ -1,8 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const SPHERE_ENDPOINT = process.env.SPHERE_ENDPOINT; // e.g., 'https://<your-id>.compilers.sphere-engine.com/api/v4'
-const SPHERE_TOKEN = process.env.SPHERE_TOKEN;
+
 const LANGUAGE_MAP = {
   javascript: 56, // Node.js
   python: 116, // Python 3
@@ -11,6 +10,8 @@ const LANGUAGE_MAP = {
 };
 
 router.post("/run", async (req, res) => {
+  const SPHERE_ENDPOINT = process.env.SPHERE_ENDPOINT; // e.g., 'https://<your-id>.compilers.sphere-engine.com/api/v4'
+  const SPHERE_TOKEN = process.env.SPHERE_TOKEN;
   const { code, language } = req.body;
   const compilerId = LANGUAGE_MAP[language] || 56; // Default to Node.js
   console.log("Received code execution request:", { language, compilerId });
