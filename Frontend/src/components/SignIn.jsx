@@ -21,7 +21,8 @@ import ChatBot from "./ChatBot";
 import Alert from "./Alert";
 
 export default function UserSignIn() {
-  const API_BASE_URL = "http://localhost:4000";
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);

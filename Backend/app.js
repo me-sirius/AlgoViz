@@ -1,13 +1,13 @@
 const express = require("express");
-const cookieParser = require("cookie-parser");
 const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const userRoutes = require("./routes/user.route");
 const blogRoutes = require("./routes/blog.route");
 const codeRoutes = require("./routes/code.route");
+dotenv.config();
 const dbConnect = require("./db/db");
 
-dotenv.config();
 const app = express();
 
 // Database Connection
