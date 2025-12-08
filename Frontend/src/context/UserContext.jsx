@@ -97,7 +97,7 @@ export function AuthProvider({ children }) {
           );
 
           if (response.status === 200) {
-            console.log("Fetched user details:", response.data);
+            // console.log("Fetched user details:", response.data);
             setUser(response.data);
             setIsAuthenticated(true);
           }

@@ -22,6 +22,7 @@ router.post("/run", async (req, res) => {
       source: code,
       input: "", // Add custom input here if needed
     };
+    console.log(SPHERE_ENDPOINT, SPHERE_TOKEN);
     console.log("Submitting code to Sphere Engine:", submissionPayload);
     const submitResponse = await axios.post(
       `${SPHERE_ENDPOINT}/submissions?access_token=${SPHERE_TOKEN}`,

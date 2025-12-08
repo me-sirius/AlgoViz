@@ -84,6 +84,11 @@ export default function UserSignIn() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log("API_BASE_URL:", API_BASE_URL);
+    console.log("VITE_API_BASE_URL:", import.meta.env.VITE_API_BASE_URL);
+
+    console.log("Submitting login with credentials:", credentials);
+
     try {
       const response = await axios.post(
         `${API_BASE_URL}/users/login`,
@@ -118,7 +123,7 @@ export default function UserSignIn() {
     setForgotPasswordLoading(true);
     try {
       const response = await axios.post(
-        "http://localhost:4000/users/forgot-password",
+        `${API_BASE_URL}/users/forgot-password`,
         { email: forgotPasswordEmail }
       );
       if (response.status === 200) {
