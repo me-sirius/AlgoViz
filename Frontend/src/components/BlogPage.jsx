@@ -549,8 +549,11 @@ const BlogPage = () => {
 
   return (
     <>
-      {loading ? (
-        <LoadingPage />
+      {showLoginModal ? (
+        <LoginModal
+          isOpen={showLoginModal}
+          onClose={() => setShowLoginModal(false)}
+        />
       ) : (
         <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 relative">
           {/* --- FIX #1: BACK BUTTON ABSOLUTE TOP LEFT --- */}
@@ -750,7 +753,11 @@ const BlogPage = () => {
                     Be the first to share your insights!
                   </p>
                   <button
-                    onClick={() => setShowCreateBlog(true)}
+                    onClick={() =>
+                      localStorage.getItem("token")
+                        ? setShowCreateBlog(true)
+                        : setShowLoginModal(true)
+                    }
                     className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg transition-colors duration-300"
                   >
                     Write Your First Blog

@@ -1,571 +1,573 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
-  ChevronRight,
-  ChevronDown,
-  Play,
-  Code,
-  Clock,
-  TrendingUp,
   Search,
+  Plus,
+  Code2,
+  ChevronDown,
+  ChevronRight,
+  Clock,
+  Database,
+  ArrowLeft,
   Filter,
+  X,
+  Terminal,
+  Cpu,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import LoadingPage from "./LoadingPage";
+import Alert from "./Alert";
 
 const AlgorithmsPage = () => {
-  const [activeCategory, setActiveCategory] = useState("sorting");
-  const [expandedAlgorithm, setExpandedAlgorithm] = useState(null);
+  const API_BASE_URL =
+    import.meta.env.VITE_API_BASE_URL || "http://localhost:4000";
+  const navigate = useNavigate();
+
+  // --- State ---
+  const [algorithms, setAlgorithms] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedComplexity, setSelectedComplexity] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [expandedAlgo, setExpandedAlgo] = useState(null);
 
-  const algorithms = {
-    sorting: [
-      {
-        name: "Bubble Sort",
-        timeComplexity: "O(n²)",
-        spaceComplexity: "O(1)",
-        difficulty: "Easy",
-        description:
-          "Simple comparison-based sorting algorithm that repeatedly steps through the list.",
-        code: `function bubbleSort(arr) {
-  const n = arr.length;
-  for (let i = 0; i < n - 1; i++) {
-    for (let j = 0; j < n - i - 1; j++) {
-      if (arr[j] > arr[j + 1]) {
-        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-      }
-    }
-  }
-  return arr;
-}`,
-        keyPoints: [
-          "In-place sorting",
-          "Stable algorithm",
-          "Simple to implement",
-        ],
-      },
-      {
-        name: "Quick Sort",
-        timeComplexity: "O(n log n)",
-        spaceComplexity: "O(log n)",
-        difficulty: "Medium",
-        description:
-          "Efficient divide-and-conquer algorithm that picks a pivot and partitions the array.",
-        code: `function quickSort(arr, low = 0, high = arr.length - 1) {
-  if (low < high) {
-    const pi = partition(arr, low, high);
-    quickSort(arr, low, pi - 1);
-    quickSort(arr, pi + 1, high);
-  }
-  return arr;
-}
+  // Modal State
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [newAlgo, setNewAlgo] = useState({
+    title: "",
+    category: "Array", // Default
+    difficulty: "Medium",
+    timeComplexity: "",
+    spaceComplexity: "",
+    description: "",
+    code: "",
+  });
 
-function partition(arr, low, high) {
-  const pivot = arr[high];
-  let i = low - 1;
-  
-  for (let j = low; j < high; j++) {
-    if (arr[j] < pivot) {
-      i++;
-      [arr[i], arr[j]] = [arr[j], arr[i]];
-    }
-  }
-  [arr[i + 1], arr[high]] = [arr[high], arr[i + 1]];
-  return i + 1;
-}`,
-        keyPoints: [
-          "Divide and conquer",
-          "In-place sorting",
-          "Average case O(n log n)",
-        ],
-      },
-      {
-        name: "Merge Sort",
-        timeComplexity: "O(n log n)",
-        spaceComplexity: "O(n)",
-        difficulty: "Medium",
-        description:
-          "Stable divide-and-conquer algorithm that divides the array into halves and merges them.",
-        code: `function mergeSort(arr) {
-  if (arr.length <= 1) return arr;
-  
-  const mid = Math.floor(arr.length / 2);
-  const left = mergeSort(arr.slice(0, mid));
-  const right = mergeSort(arr.slice(mid));
-  
-  return merge(left, right);
-}
+  const [alertConfig, setAlertConfig] = useState({
+    isOpen: false,
+    message: "",
+    type: "success",
+  });
 
-function merge(left, right) {
-  const result = [];
-  let i = 0, j = 0;
-  
-  while (i < left.length && j < right.length) {
-    if (left[i] <= right[j]) {
-      result.push(left[i++]);
-    } else {
-      result.push(right[j++]);
-    }
-  }
-  
-  return result.concat(left.slice(i)).concat(right.slice(j));
-}`,
-        keyPoints: [
-          "Stable sorting",
-          "Guaranteed O(n log n)",
-          "Divide and conquer",
-        ],
-      },
-    ],
-    searching: [
-      {
-        name: "Binary Search",
-        timeComplexity: "O(log n)",
-        spaceComplexity: "O(1)",
-        difficulty: "Easy",
-        description:
-          "Efficient search algorithm for sorted arrays using divide and conquer.",
-        code: `function binarySearch(arr, target) {
-  let left = 0;
-  let right = arr.length - 1;
-  
-  while (left <= right) {
-    const mid = Math.floor((left + right) / 2);
-    
-    if (arr[mid] === target) {
-      return mid;
-    } else if (arr[mid] < target) {
-      left = mid + 1;
-    } else {
-      right = mid - 1;
-    }
-  }
-  
-  return -1; // Not found
-}`,
-        keyPoints: [
-          "Requires sorted array",
-          "Logarithmic time",
-          "Divide and conquer",
-        ],
-      },
-      {
-        name: "Linear Search",
-        timeComplexity: "O(n)",
-        spaceComplexity: "O(1)",
-        difficulty: "Easy",
-        description:
-          "Simple search algorithm that checks each element sequentially.",
-        code: `function linearSearch(arr, target) {
-  for (let i = 0; i < arr.length; i++) {
-    if (arr[i] === target) {
-      return i;
-    }
-  }
-  return -1; // Not found
-}`,
-        keyPoints: [
-          "Works on unsorted arrays",
-          "Simple implementation",
-          "Linear time complexity",
-        ],
-      },
-    ],
-    graph: [
-      {
-        name: "Depth-First Search (DFS)",
-        timeComplexity: "O(V + E)",
-        spaceComplexity: "O(V)",
-        difficulty: "Medium",
-        description:
-          "Graph traversal algorithm that explores as far as possible along each branch.",
-        code: `function dfs(graph, start, visited = new Set()) {
-  visited.add(start);
-  console.log(start);
-  
-  for (const neighbor of graph[start] || []) {
-    if (!visited.has(neighbor)) {
-      dfs(graph, neighbor, visited);
-    }
-  }
-  
-  return visited;
-}`,
-        keyPoints: [
-          "Uses stack (recursion)",
-          "Explores depth first",
-          "Memory efficient",
-        ],
-      },
-      {
-        name: "Breadth-First Search (BFS)",
-        timeComplexity: "O(V + E)",
-        spaceComplexity: "O(V)",
-        difficulty: "Medium",
-        description:
-          "Graph traversal algorithm that explores neighbors before going deeper.",
-        code: `function bfs(graph, start) {
-  const visited = new Set();
-  const queue = [start];
-  visited.add(start);
-  
-  while (queue.length > 0) {
-    const node = queue.shift();
-    console.log(node);
-    
-    for (const neighbor of graph[node] || []) {
-      if (!visited.has(neighbor)) {
-        visited.add(neighbor);
-        queue.push(neighbor);
-      }
-    }
-  }
-  
-  return visited;
-}`,
-        keyPoints: [
-          "Uses queue",
-          "Level-by-level traversal",
-          "Shortest path in unweighted graphs",
-        ],
-      },
-      {
-        name: "Dijkstra's Algorithm",
-        timeComplexity: "O((V + E) log V)",
-        spaceComplexity: "O(V)",
-        difficulty: "Hard",
-        description:
-          "Finds shortest path from source to all other vertices in weighted graph.",
-        code: `function dijkstra(graph, start) {
-  const distances = {};
-  const visited = new Set();
-  const pq = [[0, start]];
-  
-  // Initialize distances
-  for (const node in graph) {
-    distances[node] = Infinity;
-  }
-  distances[start] = 0;
-  
-  while (pq.length > 0) {
-    pq.sort((a, b) => a[0] - b[0]);
-    const [currentDist, currentNode] = pq.shift();
-    
-    if (visited.has(currentNode)) continue;
-    visited.add(currentNode);
-    
-    for (const [neighbor, weight] of graph[currentNode] || []) {
-      const newDist = currentDist + weight;
-      if (newDist < distances[neighbor]) {
-        distances[neighbor] = newDist;
-        pq.push([newDist, neighbor]);
-      }
-    }
-  }
-  
-  return distances;
-}`,
-        keyPoints: [
-          "Shortest path algorithm",
-          "Works with weighted graphs",
-          "Greedy approach",
-        ],
-      },
-    ],
-    dynamic: [
-      {
-        name: "Fibonacci (DP)",
-        timeComplexity: "O(n)",
-        spaceComplexity: "O(n)",
-        difficulty: "Easy",
-        description: "Classic dynamic programming example using memoization.",
-        code: `function fibonacci(n, memo = {}) {
-  if (n in memo) return memo[n];
-  if (n <= 1) return n;
-  
-  memo[n] = fibonacci(n - 1, memo) + fibonacci(n - 2, memo);
-  return memo[n];
-}
+  // --- Fetch Data ---
+  useEffect(() => {
+    fetchAlgorithms();
+  }, []);
 
-// Space optimized version
-function fibonacciOptimized(n) {
-  if (n <= 1) return n;
-  
-  let prev2 = 0, prev1 = 1;
-  for (let i = 2; i <= n; i++) {
-    const current = prev1 + prev2;
-    prev2 = prev1;
-    prev1 = current;
-  }
-  return prev1;
-}`,
-        keyPoints: [
-          "Memoization technique",
-          "Overlapping subproblems",
-          "Space optimization possible",
-        ],
-      },
-      {
-        name: "Longest Common Subsequence",
-        timeComplexity: "O(m × n)",
-        spaceComplexity: "O(m × n)",
-        difficulty: "Medium",
-        description: "Finds the longest subsequence common to two sequences.",
-        code: `function lcs(text1, text2) {
-  const m = text1.length;
-  const n = text2.length;
-  const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
-  
-  for (let i = 1; i <= m; i++) {
-    for (let j = 1; j <= n; j++) {
-      if (text1[i - 1] === text2[j - 1]) {
-        dp[i][j] = dp[i - 1][j - 1] + 1;
+  const fetchAlgorithms = async () => {
+    try {
+      // Replace with your actual endpoint
+      const response = await axios.get(`${API_BASE_URL}/code/algorithms`);
+      if (response.data.success) {
+        setAlgorithms(response.data.algorithms);
       } else {
-        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+        // Fallback Mock Data if DB is empty for demo
+        setAlgorithms(MOCK_DATA);
       }
+    } catch (error) {
+      console.error("Error fetching algorithms:", error);
+      setAlgorithms(MOCK_DATA); // Fallback
+    } finally {
+      setLoading(false);
     }
-  }
-  
-  return dp[m][n];
-}`,
-        keyPoints: [
-          "2D DP table",
-          "Bottom-up approach",
-          "Classic string problem",
-        ],
-      },
-    ],
   };
 
+  // --- Derived Data ---
+  // Extract unique categories from data
   const categories = [
-    { id: "sorting", name: "Sorting Algorithms", icon: "🔄" },
-    { id: "searching", name: "Searching Algorithms", icon: "🔍" },
-    { id: "graph", name: "Graph Algorithms", icon: "🕸️" },
-    { id: "dynamic", name: "Dynamic Programming", icon: "⚡" },
+    "All",
+    ...new Set(algorithms.map((item) => item.category)),
   ];
 
-  const complexityColors = {
-    "O(1)": "text-green-600 bg-green-50",
-    "O(log n)": "text-blue-600 bg-blue-50",
-    "O(n)": "text-yellow-600 bg-yellow-50",
-    "O(n log n)": "text-orange-600 bg-orange-50",
-    "O(n²)": "text-red-600 bg-red-50",
-    "O((V + E) log V)": "text-purple-600 bg-purple-50",
-    "O(V + E)": "text-indigo-600 bg-indigo-50",
-    "O(m × n)": "text-pink-600 bg-pink-50",
+  const filteredAlgorithms = algorithms.filter((algo) => {
+    const matchesSearch = algo.title
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || algo.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // --- Handlers ---
+  const handleAddAlgorithm = async (e) => {
+    e.preventDefault();
+    try {
+      // Replace with your create endpoint
+      const response = await axios.post(`${API_BASE_URL}/code/create`, newAlgo);
+
+      if (response.status === 201 || response.data.success) {
+        setAlgorithms([
+          response.data.algorithm || { ...newAlgo, id: Date.now() },
+          ...algorithms,
+        ]);
+        setShowAddModal(false);
+        setNewAlgo({
+          title: "",
+          category: "Array",
+          difficulty: "Medium",
+          timeComplexity: "",
+          spaceComplexity: "",
+          description: "",
+          code: "",
+        });
+        setAlertConfig({
+          isOpen: true,
+          message: "Algorithm added successfully!",
+          type: "success",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding algorithm", error);
+      // Demo fallback
+      setAlgorithms([{ ...newAlgo, id: Date.now() }, ...algorithms]);
+      setShowAddModal(false);
+      setAlertConfig({
+        isOpen: true,
+        message: "Added (Demo Mode)",
+        type: "success",
+      });
+    }
   };
 
-  const difficultyColors = {
-    Easy: "text-green-600 bg-green-50",
-    Medium: "text-yellow-600 bg-yellow-50",
-    Hard: "text-red-600 bg-red-50",
-  };
+  const closeAlert = () =>
+    setAlertConfig((prev) => ({ ...prev, isOpen: false }));
 
-  const filteredAlgorithms =
-    algorithms[activeCategory]?.filter((algo) => {
-      const matchesSearch =
-        algo.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        algo.description.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesComplexity =
-        selectedComplexity === "all" ||
-        algo.difficulty.toLowerCase() === selectedComplexity;
-      return matchesSearch && matchesComplexity;
-    }) || [];
+  // --- Render ---
+  if (loading) return <LoadingPage />;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Algorithms</h1>
-              <p className="text-gray-600 mt-1">
-                Comprehensive collection of data structure algorithms
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search algorithms..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-              <select
-                value={selectedComplexity}
-                onChange={(e) => setSelectedComplexity(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="all">All Difficulties</option>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </div>
-          </div>
-        </div>
+    <div className="min-h-screen bg-[#0a0e17] text-gray-100 font-sans selection:bg-blue-500/30 relative">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-10%] right-[-5%] w-[40%] h-[40%] bg-purple-600/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[10%] left-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex gap-8">
-          {/* Sidebar */}
-          <div className="w-80 flex-shrink-0">
-            <div className="bg-white rounded-xl shadow-sm border p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                Categories
-              </h2>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center space-x-3 ${
-                      activeCategory === category.id
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "text-gray-600 hover:bg-gray-50"
-                    }`}
-                  >
-                    <span className="text-xl">{category.icon}</span>
-                    <span className="font-medium">{category.name}</span>
-                    <span className="ml-auto text-sm bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
-                      {algorithms[category.id]?.length || 0}
-                    </span>
-                  </button>
-                ))}
-              </div>
+      {/* Header */}
+      <header className="sticky top-0 z-40 bg-[#0a0e17]/80 backdrop-blur-xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 rounded-lg hover:bg-white/5 text-gray-400 hover:text-white transition-colors"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <div>
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-purple-500 bg-clip-text text-transparent">
+                Algorithm Library
+              </h1>
+              <p className="hidden md:block text-xs text-gray-400">
+                Master Data Structures & Logic
+              </p>
             </div>
           </div>
 
-          {/* Main Content */}
-          <div className="flex-1">
-            <div className="space-y-6">
-              {filteredAlgorithms.map((algorithm, index) => (
-                <div
-                  key={index}
-                  className="bg-white rounded-xl shadow-sm border overflow-hidden"
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white rounded-lg shadow-lg shadow-blue-500/20 transition-all transform hover:scale-105"
+          >
+            <Plus size={18} />
+            <span className="hidden md:inline font-medium">Contribute</span>
+          </button>
+        </div>
+      </header>
+
+      <main className="relative z-10 max-w-7xl mx-auto px-4 py-8 flex flex-col lg:flex-row gap-8">
+        {/* Sidebar (Categories) */}
+        <aside className="lg:w-64 flex-shrink-0 space-y-6">
+          <div className="bg-[#1e1e1e]/60 backdrop-blur-md border border-white/10 rounded-2xl p-6">
+            <h3 className="text-gray-400 text-xs font-bold uppercase tracking-wider mb-4">
+              Categories
+            </h3>
+            <div className="space-y-1">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`w-full text-left px-4 py-2.5 rounded-lg text-sm transition-all flex items-center justify-between group ${
+                    selectedCategory === cat
+                      ? "bg-blue-600/20 text-blue-400 border border-blue-600/30"
+                      : "text-gray-400 hover:bg-white/5 hover:text-white"
+                  }`}
                 >
-                  <div className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3">
-                          <h3 className="text-xl font-semibold text-gray-900">
-                            {algorithm.name}
-                          </h3>
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              difficultyColors[algorithm.difficulty]
-                            }`}
-                          >
-                            {algorithm.difficulty}
-                          </span>
-                        </div>
-                        <p className="text-gray-600 mt-2">
-                          {algorithm.description}
-                        </p>
-
-                        <div className="flex items-center space-x-6 mt-4">
-                          <div className="flex items-center space-x-2">
-                            <Clock className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">Time:</span>
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                complexityColors[algorithm.timeComplexity]
-                              }`}
-                            >
-                              {algorithm.timeComplexity}
-                            </span>
-                          </div>
-                          <div className="flex items-center space-x-2">
-                            <TrendingUp className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-600">
-                              Space:
-                            </span>
-                            <span
-                              className={`px-2 py-1 rounded text-xs font-medium ${
-                                complexityColors[algorithm.spaceComplexity]
-                              }`}
-                            >
-                              {algorithm.spaceComplexity}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <button
-                        onClick={() =>
-                          setExpandedAlgorithm(
-                            expandedAlgorithm === index ? null : index
-                          )
-                        }
-                        className="flex items-center space-x-2 px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      >
-                        <Code className="w-4 h-4" />
-                        <span>View Code</span>
-                        {expandedAlgorithm === index ? (
-                          <ChevronDown className="w-4 h-4" />
-                        ) : (
-                          <ChevronRight className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-
-                    {expandedAlgorithm === index && (
-                      <div className="mt-6 space-y-4">
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <h4 className="font-medium text-gray-900 mb-2">
-                            Key Points:
-                          </h4>
-                          <ul className="space-y-1">
-                            {algorithm.keyPoints.map((point, i) => (
-                              <li
-                                key={i}
-                                className="text-sm text-gray-600 flex items-center"
-                              >
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full mr-2"></span>
-                                {point}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-
-                        <div className="bg-gray-900 rounded-lg p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <h4 className="font-medium text-white">
-                              Implementation
-                            </h4>
-                            <button className="text-gray-400 hover:text-white text-sm">
-                              Copy Code
-                            </button>
-                          </div>
-                          <pre className="text-sm text-gray-300 overflow-x-auto">
-                            <code>{algorithm.code}</code>
-                          </pre>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  <span>{cat}</span>
+                  {selectedCategory === cat && <ChevronRight size={14} />}
+                </button>
               ))}
             </div>
+          </div>
+        </aside>
+
+        {/* Main Content */}
+        <section className="flex-1 space-y-6">
+          {/* Search Bar */}
+          <div className="relative">
+            <Search
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500"
+              size={20}
+            />
+            <input
+              type="text"
+              placeholder="Search algorithms (e.g. 'Binary Search', 'DFS')..."
+              className="w-full bg-[#1e1e1e]/60 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-gray-200 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all placeholder-gray-600"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          {/* Algorithm List */}
+          <div className="space-y-4">
+            <AnimatePresence>
+              {filteredAlgorithms.map((algo) => (
+                <motion.div
+                  key={algo.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="bg-[#1e1e1e]/60 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden hover:border-white/20 transition-colors"
+                >
+                  {/* Card Header (Click to Expand) */}
+                  <div
+                    onClick={() =>
+                      setExpandedAlgo(expandedAlgo === algo.id ? null : algo.id)
+                    }
+                    className="p-6 cursor-pointer flex items-center justify-between group"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center text-xl font-bold bg-gradient-to-br ${getGradient(
+                          algo.category
+                        )} shadow-lg`}
+                      >
+                        <Code2 size={24} className="text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white group-hover:text-blue-400 transition-colors">
+                          {algo.title}
+                        </h3>
+                        <div className="flex items-center gap-3 text-xs text-gray-400 mt-1">
+                          <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10">
+                            {algo.category}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full border ${getDifficultyColor(
+                              algo.difficulty
+                            )}`}
+                          >
+                            {algo.difficulty}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-6">
+                      <div className="hidden md:flex items-center gap-4 text-xs text-gray-500 font-mono">
+                        <span className="flex items-center gap-1">
+                          <Clock size={12} /> {algo.timeComplexity}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Database size={12} /> {algo.spaceComplexity}
+                        </span>
+                      </div>
+                      <ChevronDown
+                        className={`text-gray-500 transition-transform duration-300 ${
+                          expandedAlgo === algo.id ? "rotate-180" : ""
+                        }`}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Expanded Content */}
+                  <AnimatePresence>
+                    {expandedAlgo === algo.id && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-white/5 bg-[#000000]/20"
+                      >
+                        <div className="p-6 space-y-6">
+                          {/* Description */}
+                          <div className="text-gray-300 text-sm leading-relaxed">
+                            {algo.description}
+                          </div>
+
+                          {/* Code Block */}
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs text-gray-400 uppercase tracking-wider font-semibold">
+                              <span className="flex items-center gap-2">
+                                <Terminal size={14} /> Implementation / Pseudo
+                                Code
+                              </span>
+                              <button className="hover:text-white transition-colors">
+                                Copy
+                              </button>
+                            </div>
+                            <div className="bg-[#0d1117] rounded-lg p-4 border border-white/5 overflow-x-auto font-mono text-sm text-blue-300 shadow-inner">
+                              <pre>{algo.code}</pre>
+                            </div>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </AnimatePresence>
 
             {filteredAlgorithms.length === 0 && (
-              <div className="text-center py-12">
-                <div className="text-gray-400 text-6xl mb-4">🔍</div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+              <div className="text-center py-20">
+                <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Cpu className="text-gray-600" size={32} />
+                </div>
+                <h3 className="text-xl font-bold text-white">
                   No algorithms found
                 </h3>
-                <p className="text-gray-600">
-                  Try adjusting your search or filter criteria
-                </p>
+                <p className="text-gray-500 mt-2">Try adding one yourself!</p>
               </div>
             )}
           </div>
+        </section>
+      </main>
+
+      {/* --- ADD ALGORITHM MODAL --- */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-[#1e1e1e] border border-white/10 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col"
+          >
+            <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+              <h2 className="text-xl font-bold text-white">
+                Contribute Algorithm
+              </h2>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form
+              onSubmit={handleAddAlgorithm}
+              className="p-6 space-y-5 overflow-y-auto custom-scrollbar"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-400">
+                    Algorithm Name
+                  </label>
+                  <input
+                    required
+                    type="text"
+                    placeholder="e.g. Dijkstra's Algorithm"
+                    className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all"
+                    value={newAlgo.title}
+                    onChange={(e) =>
+                      setNewAlgo({ ...newAlgo, title: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-400">
+                    Category
+                  </label>
+                  <select
+                    className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none"
+                    value={newAlgo.category}
+                    onChange={(e) =>
+                      setNewAlgo({ ...newAlgo, category: e.target.value })
+                    }
+                  >
+                    <option value="Array">Array</option>
+                    <option value="String">String</option>
+                    <option value="Sorting">Sorting</option>
+                    <option value="Searching">Searching</option>
+                    <option value="Graph">Graph</option>
+                    <option value="DP">Dynamic Programming</option>
+                    <option value="Tree">Tree</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-400">
+                    Difficulty
+                  </label>
+                  <select
+                    className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none"
+                    value={newAlgo.difficulty}
+                    onChange={(e) =>
+                      setNewAlgo({ ...newAlgo, difficulty: e.target.value })
+                    }
+                  >
+                    <option value="Easy">Easy</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Hard">Hard</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-400">
+                    Time Complexity
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. O(n log n)"
+                    className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none"
+                    value={newAlgo.timeComplexity}
+                    onChange={(e) =>
+                      setNewAlgo({ ...newAlgo, timeComplexity: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-400">
+                    Space Complexity
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. O(1)"
+                    className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none"
+                    value={newAlgo.spaceComplexity}
+                    onChange={(e) =>
+                      setNewAlgo({
+                        ...newAlgo,
+                        spaceComplexity: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-400">
+                  Description
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  placeholder="Brief explanation of how it works..."
+                  className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-white focus:border-blue-500 outline-none resize-none"
+                  value={newAlgo.description}
+                  onChange={(e) =>
+                    setNewAlgo({ ...newAlgo, description: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-400">
+                  Code / Pseudocode
+                </label>
+                <textarea
+                  required
+                  rows={6}
+                  placeholder="function algorithm() { ... }"
+                  className="w-full bg-[#0a0e17] border border-white/10 rounded-lg px-4 py-3 text-blue-300 font-mono text-sm focus:border-blue-500 outline-none resize-none"
+                  value={newAlgo.code}
+                  onChange={(e) =>
+                    setNewAlgo({ ...newAlgo, code: e.target.value })
+                  }
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-6 py-2.5 rounded-lg text-gray-300 hover:bg-white/10 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-medium rounded-lg shadow-lg transition-all"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </motion.div>
         </div>
-      </div>
+      )}
+
+      <Alert
+        isOpen={alertConfig.isOpen}
+        message={alertConfig.message}
+        type={alertConfig.type}
+        onClose={closeAlert}
+      />
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #444; }
+      `}</style>
     </div>
   );
 };
+
+// --- Helpers ---
+const getDifficultyColor = (level) => {
+  switch (level) {
+    case "Easy":
+      return "bg-green-500/10 text-green-400 border-green-500/20";
+    case "Medium":
+      return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
+    case "Hard":
+      return "bg-red-500/10 text-red-400 border-red-500/20";
+    default:
+      return "bg-gray-500/10 text-gray-400 border-gray-500/20";
+  }
+};
+
+const getGradient = (category) => {
+  // Random visual flair based on category string
+  if (category === "Graph") return "from-purple-500 to-pink-600";
+  if (category === "Sorting") return "from-blue-500 to-cyan-600";
+  if (category === "DP") return "from-orange-500 to-red-600";
+  return "from-blue-600 to-indigo-600";
+};
+
+// --- Mock Data for Demo ---
+const MOCK_DATA = [
+  {
+    id: 1,
+    title: "Bubble Sort",
+    category: "Sorting",
+    difficulty: "Easy",
+    timeComplexity: "O(n²)",
+    spaceComplexity: "O(1)",
+    description:
+      "A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.",
+    code: `function bubbleSort(arr) {\n  let n = arr.length;\n  for (let i = 0; i < n; i++) {\n    for (let j = 0; j < n - i - 1; j++) {\n      if (arr[j] > arr[j + 1]) {\n        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];\n      }\n    }\n  }\n  return arr;\n}`,
+  },
+  {
+    id: 2,
+    title: "Binary Search",
+    category: "Searching",
+    difficulty: "Easy",
+    timeComplexity: "O(log n)",
+    spaceComplexity: "O(1)",
+    description:
+      "Search a sorted array by repeatedly dividing the search interval in half.",
+    code: `function binarySearch(arr, x) {\n  let start = 0, end = arr.length - 1;\n  while (start <= end) {\n    let mid = Math.floor((start + end) / 2);\n    if (arr[mid] === x) return true;\n    else if (arr[mid] < x) start = mid + 1;\n    else end = mid - 1;\n  }\n  return false;\n}`,
+  },
+  {
+    id: 3,
+    title: "Depth First Search (DFS)",
+    category: "Graph",
+    difficulty: "Medium",
+    timeComplexity: "O(V + E)",
+    spaceComplexity: "O(V)",
+    description:
+      "Traverse a graph structure starting from a root node and exploring as far as possible along each branch before backtracking.",
+    code: `function dfs(graph, start, visited = new Set()) {\n  console.log(start);\n  visited.add(start);\n  for (const neighbor of graph[start]) {\n    if (!visited.has(neighbor)) {\n      dfs(graph, neighbor, visited);\n    }\n  }\n}`,
+  },
+];
 
 export default AlgorithmsPage;

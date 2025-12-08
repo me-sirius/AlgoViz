@@ -824,7 +824,7 @@ const UserProfilePage = () => {
       </div>
 
       {/* Danger Zone */}
-      <div className="rounded-3xl p-8 bg-red-500/10 border border-red-500/30">
+      {/* <div className="rounded-3xl p-8 bg-red-500/10 border border-red-500/30">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-3 bg-red-500/20 rounded-2xl">
             <Trash2 className="w-6 h-6 text-red-400" />
@@ -840,7 +840,7 @@ const UserProfilePage = () => {
           <LogOut className="w-4 h-4 group-hover:rotate-12 transition-transform" />
           Delete Account
         </button>
-      </div>
+      </div> */}
     </div>
   );
 
