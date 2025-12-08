@@ -2,9 +2,11 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "app.js",
+  "engines": {
+    "node": "18.x"
+  },
   "scripts": {
-    "start": "node app.js",
-    "test": "echo \"no tests\" && exit 1"
+    "start": "node app.js"
   },
   "keywords": [],
   "author": "",
