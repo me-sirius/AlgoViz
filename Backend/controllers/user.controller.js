@@ -494,6 +494,7 @@ module.exports.googleLogin = async (req, res, next) => {
         googleId,
         avatar: picture,
         isVerified: true,
+        password: "google_oauth_no_password",
         authMethod: "google",
       });
       await user.save();

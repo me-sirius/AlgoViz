@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useContext } from "react";
 import {
   MessageSquare,
   Heart,
@@ -22,7 +22,8 @@ import {
 import Alert from "./Alert";
 import axios from "axios";
 import LoadingPage from "./LoadingPage";
-
+import { AuthContext } from "../context/UserContext";
+import LoginModal from "./LoginModal";
 const BlogPage = () => {
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
@@ -36,7 +37,7 @@ const BlogPage = () => {
   const [carouselIndex, setCarouselIndex] = useState(0);
   const [editingBlog, setEditingBlog] = useState(null);
   const [loading, setLoading] = useState(true);
-
+  const [showLoginModal, setShowLoginModal] = useState(true);
   // Initialize with your mock data or empty array if fetching
   const [blogs, setBlogs] = useState([
     {
@@ -66,7 +67,7 @@ const BlogPage = () => {
   const [showComments, setShowComments] = useState({});
   const [userBlogs, setUserBlog] = useState([]);
   const [publicBlogs, setPublicBlogs] = useState([]);
-
+  const { isAuthenticated } = useContext(AuthContext);
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -321,7 +322,13 @@ const BlogPage = () => {
       (prev) => (prev - 1 + userBlogs.length) % Math.max(1, userBlogs.length)
     );
   };
-
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setShowLoginModal(true);
+    } else {
+      setShowLoginModal(false);
+    }
+  }, [isAuthenticated]);
   const renderBlogCard = (blog, isCarousel = false) => {
     const isExpanded = expandedBlogs.has(blog.id);
     const displayContent = isExpanded
@@ -330,200 +337,213 @@ const BlogPage = () => {
     const shouldShowReadMore = blog.content.length > 200;
 
     return (
-      <article
-        key={blog.id}
-        className={`bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden ${
-          isCarousel ? "min-w-full" : ""
-        }`}
-      >
-        <div className="p-6 border-b border-gray-700">
-          <div className="flex items-start justify-between mb-4">
-            <div className="flex items-start space-x-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-white">{blog.author}</h3>
-                <div className="flex items-center space-x-4 text-sm text-gray-400">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="w-4 h-4" />
-                    <span>{blog.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Eye className="w-4 h-4" />
-                    <span>{blog.views} views</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {isCarousel && blog.author === currentUser && (
-                <>
-                  <button
-                    onClick={() => handleEditBlog(blog)}
-                    className="text-gray-400 hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-gray-700"
-                    title="Edit blog"
-                  >
-                    <Edit className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteBlog(blog.id)}
-                    className="text-gray-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-gray-700"
-                    title="Delete blog"
-                  >
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </>
-              )}
-              <button className="text-gray-400 hover:text-white transition-colors">
-                <MoreHorizontal className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
-
-          <h2 className="text-2xl font-bold text-white mb-4">{blog.title}</h2>
-
-          <div className="flex flex-wrap gap-2 mb-4">
-            {blog.tags.map((tag, index) => (
-              <span
-                key={index}
-                className="px-3 py-1 bg-cyan-900 text-cyan-300 text-sm rounded-full"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="p-6">
-          <div className="text-gray-300 leading-relaxed whitespace-pre-line">
-            {displayContent}
-          </div>
-          {shouldShowReadMore && (
-            <button
-              onClick={() => toggleExpandBlog(blog.id)}
-              className="mt-4 text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
-            >
-              {isExpanded ? "Read Less" : "Read More"}
-            </button>
-          )}
-        </div>
-
-        <div className="px-6 py-4 border-t border-gray-700">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-6">
-              <button
-                onClick={() => handleLike(blog.id)}
-                className={`flex items-center space-x-2 transition-colors ${
-                  blog.liked
-                    ? "text-red-500"
-                    : "text-gray-400 hover:text-red-500"
-                }`}
-              >
-                <Heart
-                  className={`w-5 h-5 ${blog.liked ? "fill-current" : ""}`}
-                />
-                <span>{blog.likes}</span>
-              </button>
-
-              <button
-                onClick={() => toggleComments(blog.id)}
-                className="flex items-center space-x-2 text-gray-400 hover:text-cyan-400 transition-colors"
-              >
-                <MessageSquare className="w-5 h-5" />
-                <span>{blog.comments}</span>
-              </button>
-
-              <button
-                onClick={() => handleShare(blog.id)}
-                className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors"
-              >
-                <Share2 className="w-5 h-5" />
-                <span>Share</span>
-              </button>
-            </div>
-
-            <button
-              onClick={() => handleBookmark(blog.id)}
-              className={`transition-colors ${
-                blog.bookmarked
-                  ? "text-yellow-500"
-                  : "text-gray-400 hover:text-yellow-500"
-              }`}
-            >
-              <Bookmark
-                className={`w-5 h-5 ${blog.bookmarked ? "fill-current" : ""}`}
-              />
-            </button>
-          </div>
-        </div>
-
-        {showComments[blog.id] && (
-          <div className="border-t border-gray-700 bg-gray-750">
+      <>
+        {showLoginModal ? (
+          <LoginModal
+            isOpen={showLoginModal}
+            onClose={() => setShowLoginModal(false)}
+          />
+        ) : (
+          <article
+            key={blog.id}
+            className={`bg-gray-800 rounded-lg shadow-xl border border-gray-700 overflow-hidden ${
+              isCarousel ? "min-w-full" : ""
+            }`}
+          >
             <div className="p-6 border-b border-gray-700">
-              <div className="flex space-x-4">
-                <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    value={newComment[blog.id] || ""}
-                    onChange={(e) =>
-                      setNewComment({
-                        ...newComment,
-                        [blog.id]: e.target.value,
-                      })
-                    }
-                    placeholder="Write a comment..."
-                    rows={3}
-                    className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
-                  />
-                  <div className="flex justify-end mt-3">
-                    <button
-                      onClick={() => handleAddComment(blog.id)}
-                      disabled={!newComment[blog.id]?.trim()}
-                      className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-300"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>Comment</span>
-                    </button>
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center">
+                    <User className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-white">{blog.author}</h3>
+                    <div className="flex items-center space-x-4 text-sm text-gray-400">
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="w-4 h-4" />
+                        <span>{blog.date}</span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Eye className="w-4 h-4" />
+                        <span>{blog.views} views</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
+                <div className="flex items-center space-x-2">
+                  {isCarousel && blog.author === currentUser && (
+                    <>
+                      <button
+                        onClick={() => handleEditBlog(blog)}
+                        className="text-gray-400 hover:text-blue-400 transition-colors p-2 rounded-lg hover:bg-gray-700"
+                        title="Edit blog"
+                      >
+                        <Edit className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteBlog(blog.id)}
+                        className="text-gray-400 hover:text-red-400 transition-colors p-2 rounded-lg hover:bg-gray-700"
+                        title="Delete blog"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </>
+                  )}
+                  <button className="text-gray-400 hover:text-white transition-colors">
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              <h2 className="text-2xl font-bold text-white mb-4">
+                {blog.title}
+              </h2>
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {blog.tags.map((tag, index) => (
+                  <span
+                    key={index}
+                    className="px-3 py-1 bg-cyan-900 text-cyan-300 text-sm rounded-full"
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
-              {(comments[blog.id] || []).map((comment) => (
-                <div key={comment.id} className="flex space-x-4">
-                  <div className="w-10 h-10 bg-gradient-to-r from-gray-600 to-gray-500 rounded-full flex items-center justify-center flex-shrink-0">
-                    <User className="w-5 h-5 text-white" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="font-semibold text-white">
-                        {comment.author}
-                      </span>
-                      <span className="text-sm text-gray-400">
-                        {comment.date}
-                      </span>
+            <div className="p-6">
+              <div className="text-gray-300 leading-relaxed whitespace-pre-line">
+                {displayContent}
+              </div>
+              {shouldShowReadMore && (
+                <button
+                  onClick={() => toggleExpandBlog(blog.id)}
+                  className="mt-4 text-cyan-400 hover:text-cyan-300 font-medium transition-colors"
+                >
+                  {isExpanded ? "Read Less" : "Read More"}
+                </button>
+              )}
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-6">
+                  <button
+                    onClick={() => handleLike(blog.id)}
+                    className={`flex items-center space-x-2 transition-colors ${
+                      blog.liked
+                        ? "text-red-500"
+                        : "text-gray-400 hover:text-red-500"
+                    }`}
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${blog.liked ? "fill-current" : ""}`}
+                    />
+                    <span>{blog.likes}</span>
+                  </button>
+
+                  <button
+                    onClick={() => toggleComments(blog.id)}
+                    className="flex items-center space-x-2 text-gray-400 hover:text-cyan-400 transition-colors"
+                  >
+                    <MessageSquare className="w-5 h-5" />
+                    <span>{blog.comments}</span>
+                  </button>
+
+                  <button
+                    onClick={() => handleShare(blog.id)}
+                    className="flex items-center space-x-2 text-gray-400 hover:text-blue-400 transition-colors"
+                  >
+                    <Share2 className="w-5 h-5" />
+                    <span>Share</span>
+                  </button>
+                </div>
+
+                <button
+                  onClick={() => handleBookmark(blog.id)}
+                  className={`transition-colors ${
+                    blog.bookmarked
+                      ? "text-yellow-500"
+                      : "text-gray-400 hover:text-yellow-500"
+                  }`}
+                >
+                  <Bookmark
+                    className={`w-5 h-5 ${
+                      blog.bookmarked ? "fill-current" : ""
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {showComments[blog.id] && (
+              <div className="border-t border-gray-700 bg-gray-750">
+                <div className="p-6 border-b border-gray-700">
+                  <div className="flex space-x-4">
+                    <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="w-5 h-5 text-white" />
                     </div>
-                    <p className="text-gray-300 mb-2">{comment.content}</p>
-                    <div className="flex items-center space-x-4">
-                      <button className="flex items-center space-x-1 text-gray-400 hover:text-red-500 transition-colors">
-                        <Heart className="w-4 h-4" />
-                        <span>{comment.likes}</span>
-                      </button>
-                      <button className="text-gray-400 hover:text-cyan-400 transition-colors text-sm">
-                        Reply
-                      </button>
+                    <div className="flex-1">
+                      <textarea
+                        value={newComment[blog.id] || ""}
+                        onChange={(e) =>
+                          setNewComment({
+                            ...newComment,
+                            [blog.id]: e.target.value,
+                          })
+                        }
+                        placeholder="Write a comment..."
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-700 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent resize-none"
+                      />
+                      <div className="flex justify-end mt-3">
+                        <button
+                          onClick={() => handleAddComment(blog.id)}
+                          disabled={!newComment[blog.id]?.trim()}
+                          className="flex items-center space-x-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 disabled:bg-gray-600 disabled:cursor-not-allowed text-white rounded-lg transition-colors duration-300"
+                        >
+                          <Send className="w-4 h-4" />
+                          <span>Comment</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
+
+                <div className="p-6 space-y-6">
+                  {(comments[blog.id] || []).map((comment) => (
+                    <div key={comment.id} className="flex space-x-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-gray-600 to-gray-500 rounded-full flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <span className="font-semibold text-white">
+                            {comment.author}
+                          </span>
+                          <span className="text-sm text-gray-400">
+                            {comment.date}
+                          </span>
+                        </div>
+                        <p className="text-gray-300 mb-2">{comment.content}</p>
+                        <div className="flex items-center space-x-4">
+                          <button className="flex items-center space-x-1 text-gray-400 hover:text-red-500 transition-colors">
+                            <Heart className="w-4 h-4" />
+                            <span>{comment.likes}</span>
+                          </button>
+                          <button className="text-gray-400 hover:text-cyan-400 transition-colors text-sm">
+                            Reply
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </article>
         )}
-      </article>
+      </>
     );
   };
 
@@ -543,10 +563,10 @@ const BlogPage = () => {
           </button>
 
           {/* Header */}
-          <div className="bg-gray-800 border-b border-gray-700 pt-16 pb-8">
+          <div className="bg-gray-800 border-b border-gray-700 pt-8 pb-8">
             <div className="container mx-auto px-6">
               <div className="flex items-center justify-between">
-                <div className="flex-1 ml-16">
+                <div className="flex-1 ml-3">
                   {" "}
                   {/* Margin left to avoid overlap with absolute back button */}
                   <h1 className="text-3xl font-bold text-white">
@@ -557,7 +577,11 @@ const BlogPage = () => {
                   </p>
                 </div>
                 <button
-                  onClick={() => setShowCreateBlog(true)}
+                  onClick={() =>
+                    localStorage.getItem("token")
+                      ? setShowCreateBlog(true)
+                      : setShowLoginModal(true)
+                  }
                   className="flex items-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-6 py-3 rounded-lg transition-colors duration-300 shadow-lg"
                 >
                   <Plus className="w-5 h-5" />
