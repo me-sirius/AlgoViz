@@ -8,8 +8,9 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Grid3X3, MapPin, Navigation, ArrowRight, Map, Zap
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
@@ -215,6 +216,7 @@ const sampleMazes = {
 
 export default function MazeSolverVisualizer() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Maze state
   const [maze, setMaze] = useState(sampleMazes.simple.map(row => [...row]));
@@ -245,6 +247,11 @@ export default function MazeSolverVisualizer() {
     type: "info",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Initialize maze
   useEffect(() => {

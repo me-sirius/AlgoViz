@@ -8,8 +8,9 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Palette, Circle, GitBranch, Hash, Zap
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
@@ -218,6 +219,7 @@ const sampleGraphs = {
 
 export default function GraphColoringVisualizer() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Graph state
   const [graph, setGraph] = useState([]);
@@ -248,6 +250,11 @@ export default function GraphColoringVisualizer() {
     type: "info",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Initialize graph
   useEffect(() => {

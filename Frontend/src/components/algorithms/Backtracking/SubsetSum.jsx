@@ -8,8 +8,9 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Grid3X3, Calculator, Plus, Minus, Hash, Equal, Package
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
@@ -188,6 +189,7 @@ const sampleDatasets = {
 
 export default function SubsetSumVisualizer() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Algorithm state
   const [numbers, setNumbers] = useState(sampleDatasets.small.numbers);
@@ -217,6 +219,11 @@ export default function SubsetSumVisualizer() {
     type: "info",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Initialize dataset
   useEffect(() => {
