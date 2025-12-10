@@ -590,11 +590,6 @@ export default function BSTVisualizer() {
       </button>
     );
   };
-          </div>
-        </div>
-      </div>
-    );
-  };
 
   const currentStepData = steps[currentStep];
 
