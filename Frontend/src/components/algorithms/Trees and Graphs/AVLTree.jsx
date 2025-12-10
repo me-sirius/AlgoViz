@@ -22,8 +22,11 @@ import {
   RotateCcw as RotateLeft,
   RotateCw as RotateRight,
   TreePine,
+  Sparkles,
+  Rewind,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
@@ -268,6 +271,7 @@ class AVLTreeClass {
 
 const AVLTree = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const svgRef = useRef(null);
 
   // Tree state
@@ -285,12 +289,18 @@ const AVLTree = () => {
   // UI state
   const [activeRightTab, setActiveRightTab] = useState("stats");
   const [currentHighlightedLine, setCurrentHighlightedLine] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     message: "",
     type: "error",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   
   const handleBack = () => {
