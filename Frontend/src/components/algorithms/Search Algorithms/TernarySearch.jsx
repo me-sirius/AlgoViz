@@ -8,13 +8,15 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Search, Divide, Split
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
+import { useTheme } from "../../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
 const TernarySearch = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const canvasRef = useRef(null);
   const [array, setArray] = useState([1, 4, 7, 10, 13, 16, 19, 22, 25, 28, 31, 34, 37, 40, 43]);
   const [searchTarget, setSearchTarget] = useState(22);
@@ -37,6 +39,12 @@ const TernarySearch = () => {
     type: "error",
     customButtons: null,
   });
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({

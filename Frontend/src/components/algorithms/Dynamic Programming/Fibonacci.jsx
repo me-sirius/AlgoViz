@@ -9,8 +9,9 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   TrendingUp, Plus, Minus
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
 
+import { useTheme } from "../../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
@@ -18,6 +19,7 @@ import { fibonacci as fibonacciCode } from "../../../algorithms/codeExamples.js"
 
 export default function Fibonacci() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Fibonacci state
   const [n, setN] = useState(10);
@@ -39,6 +41,12 @@ export default function Fibonacci() {
     type: "error",
     customButtons: null,
   });
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({

@@ -8,13 +8,15 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Search, Calculator, TrendingUp
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
+import { useTheme } from "../../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
 const InterpolationSearch = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   const canvasRef = useRef(null);
   const [array, setArray] = useState([10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120, 130, 140, 150]);
   const [searchTarget, setSearchTarget] = useState(70);
@@ -37,6 +39,12 @@ const InterpolationSearch = () => {
     type: "error",
     customButtons: null,
   });
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({

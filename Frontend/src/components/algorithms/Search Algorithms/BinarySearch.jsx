@@ -8,13 +8,15 @@ import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
   Search, Eye, ChevronLeft, ChevronRight
-} from "lucide-react";
+, Sparkles, Rewind } from "lucide-react";
+import { useTheme } from "../../../context/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 
 const BinarySearch = () => {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Array and search state
   const [arraySize, setArraySize] = useState(10);
@@ -41,6 +43,12 @@ const BinarySearch = () => {
     type: "error",
     customButtons: null,
   });
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({
