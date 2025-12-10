@@ -20,15 +20,25 @@ import {
   Plus,
   Minus,
   Search,
+  Layers,
+  Zap,
+  TrendingUp,
+  Eye,
+  Sparkles,
+  Rewind,
+  Menu,
+  X as XIcon,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 import { bst as bstCode } from "../../../algorithms/codeExamples.js";
 
 export default function BSTVisualizer() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   // BST state
   const [initialValues, setInitialValues] = useState("50,30,70,20,40,60,80");
@@ -48,6 +58,9 @@ export default function BSTVisualizer() {
   const [treeValidationError, setTreeValidationError] = useState("");
   const [isValidTree, setIsValidTree] = useState(false);
   const [currentHighlightedLine, setCurrentHighlightedLine] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSettingsExpanded, setIsSettingsExpanded] = useState(true);
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     message: "",
@@ -56,6 +69,11 @@ export default function BSTVisualizer() {
   });
 
   const canvasRef = useRef(null);
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   // Tree Node Class
   class TreeNode {
@@ -71,27 +89,21 @@ export default function BSTVisualizer() {
   const handleBack = () => {
     setAlertConfig({
       isOpen: true,
-      message:
-        "Are you sure you want to go back? Any unsaved progress will be lost.",
+      message: "Are you sure you want to leave? Your progress will be lost.",
       type: "warning",
       customButtons: (
-        <div className="flex gap-3 justify-center">
+        <div className="flex space-x-4 justify-center">
           <button
-            onClick={() =>
-              setAlertConfig((prev) => ({ ...prev, isOpen: false }))
-            }
-            className="px-6 py-3 bg-gray-700 text-white rounded-xl transition-all duration-300 hover:scale-105 hover:bg-gray-600 shadow-lg"
+            onClick={() => navigate("/")}
+            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
           >
-            Stay
+            Leave
           </button>
           <button
-            onClick={() => {
-              setAlertConfig((prev) => ({ ...prev, isOpen: false }));
-              setTimeout(() => navigate("/"), 100);
-            }}
-            className="px-6 py-3 bg-gradient-to-r from-red-500 to-pink-500 text-white rounded-xl transition-all duration-300 hover:scale-105 shadow-lg"
+            onClick={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-bold rounded-2xl transition-all duration-300 hover:scale-105 shadow-xl"
           >
-            Go Back
+            Stay
           </button>
         </div>
       ),
@@ -493,39 +505,91 @@ export default function BSTVisualizer() {
   }, [currentTree, currentStep, steps]);
 
   // UI Components
-  const TabButton = ({ id, icon: Icon, label }) => (
+  const TabButton = ({ id, icon: Icon, label, className = "" }) => (
     <button
       onClick={() => setActiveRightTab(id)}
-      className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-200 ${
+      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-300 ${
         activeRightTab === id
-          ? "bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg transform scale-105"
-          : "text-gray-300 hover:text-white hover:bg-gray-700/50"
-      }`}
+          ? "bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg scale-105"
+          : theme === 'dark'
+            ? "bg-white/5 text-slate-300 hover:bg-white/10 hover:text-white"
+            : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:text-gray-900"
+      } ${className}`}
     >
       <Icon size={18} />
-      {label}
+      <span className="hidden sm:inline">{label}</span>
     </button>
   );
 
-  const StatCard = ({ icon: Icon, value, label, color = "blue" }) => {
+  const StatCard = ({ icon: Icon, value, label, color = "cyan", className = "" }) => {
     const colorClasses = {
-      blue: "from-blue-500/10 to-blue-600/10 border-blue-500/20",
-      green: "from-green-500/10 to-green-600/10 border-green-500/20",
-      purple: "from-purple-500/10 to-purple-600/10 border-purple-500/20",
-      orange: "from-orange-500/10 to-orange-600/10 border-orange-500/20",
+      cyan: theme === 'dark'
+        ? "from-cyan-500/20 to-blue-500/20 border-cyan-500/30"
+        : "from-cyan-100 to-blue-100 border-cyan-300",
+      green: theme === 'dark'
+        ? "from-green-500/20 to-emerald-500/20 border-green-500/30"
+        : "from-green-100 to-emerald-100 border-green-300",
+      amber: theme === 'dark'
+        ? "from-amber-500/20 to-orange-500/20 border-amber-500/30"
+        : "from-amber-100 to-orange-100 border-amber-300",
+      red: theme === 'dark'
+        ? "from-red-500/20 to-pink-500/20 border-red-500/30"
+        : "from-red-100 to-pink-100 border-red-300",
+      purple: theme === 'dark'
+        ? "from-purple-500/20 to-pink-500/20 border-purple-500/30"
+        : "from-purple-100 to-pink-100 border-purple-300",
+    };
+
+    const iconColors = {
+      cyan: theme === 'dark' ? "text-cyan-400" : "text-cyan-600",
+      green: theme === 'dark' ? "text-green-400" : "text-green-600",
+      amber: theme === 'dark' ? "text-amber-400" : "text-amber-600",
+      red: theme === 'dark' ? "text-red-400" : "text-red-600",
+      purple: theme === 'dark' ? "text-purple-400" : "text-purple-600",
     };
 
     return (
-      <div
-        className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-4 backdrop-blur-sm`}
-      >
+      <div className={`bg-gradient-to-br ${colorClasses[color]} border rounded-xl p-4 backdrop-blur-sm shadow-lg ${className}`}>
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-white/10 rounded-lg">
-            <Icon size={20} className="text-white" />
+          <div className={`p-2.5 rounded-lg ${theme === 'dark' ? 'bg-white/10' : 'bg-white/50'}`}>
+            <Icon size={20} className={iconColors[color]} />
           </div>
-          <div>
-            <div className="text-2xl font-bold text-white">{value}</div>
-            <div className="text-sm text-gray-300">{label}</div>
+          <div className="min-w-0 flex-1">
+            <div className={`text-2xl font-black ${theme === 'dark' ? 'text-white' : 'text-gray-900'} truncate`}>
+              {value}
+            </div>
+            <div className={`text-xs font-semibold ${theme === 'dark' ? 'text-slate-300' : 'text-gray-600'}`}>
+              {label}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const ControlButton = ({ onClick, disabled, icon: Icon, label, variant = "primary", className = "" }) => {
+    const variants = {
+      primary: disabled
+        ? theme === 'dark' ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white hover:scale-105 shadow-lg",
+      success: disabled
+        ? theme === 'dark' ? "bg-gray-700 text-gray-500 cursor-not-allowed" : "bg-gray-200 text-gray-400 cursor-not-allowed"
+        : "bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white hover:scale-105 shadow-lg",
+      danger: "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 text-white hover:scale-105 shadow-lg",
+    };
+
+    return (
+      <button
+        onClick={onClick}
+        disabled={disabled}
+        className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold transition-all duration-300 ${variants[variant]} ${className}`}
+        title={label}
+      >
+        <Icon size={18} />
+        <span className="hidden sm:inline text-sm">{label}</span>
+      </button>
+    );
+  };
           </div>
         </div>
       </div>
