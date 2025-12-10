@@ -17,15 +17,19 @@ import {
   ArrowLeft,
   AlertTriangle,
   Shuffle,
+  Sparkles,
+  Rewind,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 import { bubbleSort as bubbleSortCode } from "../../../algorithms/codeExamples.js";
 
 export default function BubbleSort() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   // Array state
   const [arraySize, setArraySize] = useState(12);
@@ -47,6 +51,7 @@ export default function BubbleSort() {
   const [arrayValidationError, setArrayValidationError] = useState("");
   const [isValidArray, setIsValidArray] = useState(false);
   const [currentHighlightedLine, setCurrentHighlightedLine] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     message: "",
@@ -57,6 +62,11 @@ export default function BubbleSort() {
   // New features state
   const [sortDirection, setSortDirection] = useState("ascending");
   const [dataType, setDataType] = useState("number");
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({

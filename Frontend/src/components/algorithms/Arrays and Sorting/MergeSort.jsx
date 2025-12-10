@@ -8,15 +8,18 @@ import {
 } from "react-resizable-panels";
 import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
-  Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle, ArrowDown, ArrowUp
+  Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle, ArrowDown, ArrowUp,
+  Sparkles, Rewind
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 import { mergeSort as mergeSortCode } from "../../../algorithms/codeExamples.js";
 
 export default function MergeSort() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
   
   // Array state
   const [arraySize, setArraySize] = useState(12);
@@ -35,6 +38,7 @@ export default function MergeSort() {
   const [activeRightTab, setActiveRightTab] = useState("stats");
   const [arrayValidationError, setArrayValidationError] = useState("");
   const [isValidArray, setIsValidArray] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
   
   // Features state
   const [sortDirection, setSortDirection] = useState('ascending');
@@ -46,6 +50,11 @@ export default function MergeSort() {
     type: "error",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({

@@ -9,14 +9,17 @@ import {
 import {
   Play, Pause, SkipForward, RotateCcw, Settings, BarChart3, Code2,
   Activity, Target, Clock, Maximize2, ArrowLeft, AlertTriangle, Shuffle,
+  Sparkles, Rewind
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "../../../context/ThemeContext";
 import Alert from "../../Alert.jsx";
 import BasicCodeDisplay from "../../BasicCodeDisplay.jsx";
 import { quickSort as quickSortCode } from "../../../algorithms/codeExamples.js";
 
 export default function QuickSort() {
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const [dataType, setDataType] = useState('number');
   const [sortDirection, setSortDirection] = useState('ascending');
@@ -39,12 +42,18 @@ export default function QuickSort() {
   const [arrayValidationError, setArrayValidationError] = useState("");
   const [isValidArray, setIsValidArray] = useState(false);
   const [currentHighlightedLine, setCurrentHighlightedLine] = useState(null);
+  const [isResizing, setIsResizing] = useState(false);
   const [alertConfig, setAlertConfig] = useState({
     isOpen: false,
     message: "",
     type: "error",
     customButtons: null,
   });
+
+  // Scroll to top on mount to prevent auto-scroll issue
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const handleBack = () => {
     setAlertConfig({
