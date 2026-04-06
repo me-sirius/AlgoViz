@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTheme } from "../core/context/ThemeContext";
 import {
   AlertCircle,
   RefreshCw,
@@ -9,14 +10,20 @@ import {
   ServerCrash,
   Database,
 } from "lucide-react";
+import NotFoundPage from "../pages/not-found/NotFoundPage";
 
 const ErrorPage = ({
-  errorType = "general", // 'general', 'network', 'server', 'database', '404'
+  errorType = "general", // 'general', 'network', 'server', 'database'
   message = "Something went wrong",
   onRetry,
   onGoHome,
 }) => {
   const [isRetrying, setIsRetrying] = useState(false);
+
+  // If it's a 404 error, use the dedicated NotFoundPage component
+  if (errorType === "404") {
+    return <NotFoundPage />;
+  }
 
   const errorConfigs = {
     general: {
@@ -45,13 +52,6 @@ const ErrorPage = ({
         "We couldn't connect to our database. Please try again in a moment.",
       color: "purple",
     },
-    404: {
-      icon: AlertCircle,
-      title: "404 - Page Not Found",
-      description:
-        "The page you're looking for doesn't exist or has been moved.",
-      color: "cyan",
-    },
   };
 
   const config = errorConfigs[errorType] || errorConfigs.general;
@@ -78,13 +78,6 @@ const ErrorPage = ({
       border: "border-purple-500",
       glow: "shadow-purple-500/50",
       hover: "hover:bg-purple-600",
-    },
-    cyan: {
-      bg: "bg-cyan-500",
-      text: "text-cyan-400",
-      border: "border-cyan-500",
-      glow: "shadow-cyan-500/50",
-      hover: "hover:bg-cyan-600",
     },
   };
 

@@ -1,4 +1,4 @@
-# CodeMaze Backend API Documentation 🚀
+# AlgoViz Backend API Documentation 🚀
 
 <div align="center">
   <h3>RESTful API for Algorithm Visualization Platform</h3>

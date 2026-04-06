@@ -9,6 +9,7 @@ const BasicCodeDisplay = ({
   jsCode,
   highlightedLine = null,
   className = "",
+  theme = "dark", // New: theme prop with default dark
 }) => {
   // state for fullscreen
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -63,22 +64,27 @@ const BasicCodeDisplay = ({
   const sanitizedPythonCode = pythonCode ? String(pythonCode) : "";
   const sanitizedJsCode = jsCode ? String(jsCode) : "";
 
+  // Theme-based styling
+  const containerBg = theme === "dark" ? "bg-slate-900" : "bg-gray-50";
+  const buttonBg = theme === "dark"
+    ? "bg-slate-700/80 hover:bg-slate-600 text-white"
+    : "bg-gray-200/80 hover:bg-gray-300 text-gray-700";
+
   return (
     <ErrorBoundary>
       <div
         ref={fullScreenRef}
-        className={`relative bg-black ${
-          isFullScreen
+        className={`relative ${containerBg} ${isFullScreen
             ? "fixed inset-0 z-50 flex flex-col h-screen w-screen"
             : "w-full h-full"
-        }`}
+          }`}
         style={{ minHeight: 0 }}
       >
         {/* BOTH buttons in one corner, side-by-side */}
         <div className="absolute top-2 right-2 z-10 flex space-x-2">
           {/* Wrap toggle */}
           <button
-            className="p-2 bg-gray-800/80 rounded hover:bg-gray-700 text-white"
+            className={`p-2 rounded cursor-pointer transition-colors ${buttonBg}`}
             onClick={toggleWrap}
             title={isWrapped ? "Disable Line Wrap" : "Enable Line Wrap"}
           >
@@ -87,7 +93,7 @@ const BasicCodeDisplay = ({
 
           {/* Fullscreen toggle */}
           <button
-            className="p-2 bg-gray-800/80 rounded hover:bg-gray-700 text-white"
+            className={`p-2 rounded cursor-pointer transition-colors ${buttonBg}`}
             onClick={toggleFullScreen}
             title={isFullScreen ? "Exit Full Screen" : "Full Screen"}
           >
@@ -106,6 +112,7 @@ const BasicCodeDisplay = ({
             isWrapped={isWrapped}
             onToggleFullScreen={toggleFullScreen}
             onToggleWrap={toggleWrap}
+            theme={theme}
           />
         </div>
       </div>

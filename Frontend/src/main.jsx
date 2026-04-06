@@ -1,18 +1,18 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter } from "react-router-dom"; // ✅ Import this
+import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import "./styles/theme.css";
 import App from "./App.jsx";
-import { AuthProvider } from "./context/UserContext";
-import { ThemeProvider } from "./context/ThemeContext";
+import { AuthProvider } from "./core/context/UserContext";
+import { ThemeProvider } from "./core/context/ThemeContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <GoogleOAuthProvider clientId="1036661260275-ncusnndv837la9o71soqmg156va15rps.apps.googleusercontent.com">
+          <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
             <App />
           </GoogleOAuthProvider>
         </AuthProvider>

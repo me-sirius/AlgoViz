@@ -43,3 +43,15 @@ Icon?
 # === Docker ===
 *.pid
 docker-compose.override.yml
+
+
+# === Backend: Runtime temp files ===
+Backend/temp_scripts/
+
+# === Agent ===
+.agents/
+
+# === Helper and Backup files ===
+Frontend/backup(old)/
+Frontend/docs/
+Backend/service-account.json

@@ -1,9 +1,10 @@
 import React from 'react';
+import ErrorPage from './ErrorPage';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
   static getDerivedStateFromError(error) {
@@ -12,28 +13,50 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // You can also log the error to an error reporting service
+    // Log the error to console (you can also send to error reporting service)
     console.error("Error caught by ErrorBoundary:", error, errorInfo);
+    this.setState({ errorInfo });
   }
+
+  handleRetry = () => {
+    // Reset the error state and try to re-render children
+    this.setState({ hasError: false, error: null, errorInfo: null });
+  };
+
+  handleGoHome = () => {
+    // Reset error state and navigate home
+    this.setState({ hasError: false, error: null, errorInfo: null });
+    window.location.href = '/';
+  };
 
   render() {
     if (this.state.hasError) {
-      // You can render any custom fallback UI
+      // Use custom fallback if provided, otherwise use ErrorPage
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      // Determine error type based on error message
+      let errorType = 'general';
+      const errorMessage = this.state.error?.message?.toLowerCase() || '';
+
+      if (errorMessage.includes('network') || errorMessage.includes('fetch') || errorMessage.includes('connection')) {
+        errorType = 'network';
+      } else if (errorMessage.includes('server') || errorMessage.includes('500')) {
+        errorType = 'server';
+      } else if (errorMessage.includes('database') || errorMessage.includes('db')) {
+        errorType = 'database';
+      } else if (errorMessage.includes('not found') || errorMessage.includes('404')) {
+        errorType = '404';
+      }
+
       return (
-        <div className="p-4 bg-red-500/10 border border-red-500/30 rounded-lg text-white">
-          <h3 className="text-lg font-semibold mb-2">Something went wrong</h3>
-          <p className="text-sm text-gray-300 mb-4">
-            {this.state.error?.message || "An unknown error occurred"}
-          </p>
-          {this.props.fallback || (
-            <button
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
-              onClick={() => this.setState({ hasError: false, error: null })}
-            >
-              Try again
-            </button>
-          )}
-        </div>
+        <ErrorPage
+          errorType={errorType}
+          message={this.state.error?.message || "An unexpected error occurred"}
+          onRetry={this.handleRetry}
+          onGoHome={this.handleGoHome}
+        />
       );
     }
 
@@ -41,4 +64,4 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-export default ErrorBoundary; 
+export default ErrorBoundary;

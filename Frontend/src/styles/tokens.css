@@ -1,0 +1,231 @@
+/* ============================================
+   AlgoViz Design Tokens v1.1
+   Single source of truth for all design values
+   ============================================ */
+
+/* Google Fonts Import */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── Global Tokens (theme-independent) ── */
+:root {
+  /* Typography */
+  --font-display: "IBM Plex Mono", "Fira Code", monospace;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+  --font-code: "IBM Plex Mono", "Fira Code", monospace;
+
+  /* Type Scale (1.25 ratio) */
+  --text-display: 3.5rem;    /* 56px */
+  --text-h1: 2.5rem;         /* 40px */
+  --text-h2: 2rem;           /* 32px */
+  --text-h3: 1.5rem;         /* 24px */
+  --text-h4: 1.25rem;        /* 20px */
+  --text-body: 1rem;         /* 16px */
+  --text-sm: 0.875rem;       /* 14px */
+  --text-xs: 0.75rem;        /* 12px */
+  --text-mono-sm: 0.8125rem; /* 13px */
+
+  /* Spacing (4px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+
+  /* Border Radius */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-full: 9999px;
+
+  /* Shadows - Moved to theme definitions for spatial depth */
+
+  /* Z-indices */
+  --z-dropdown: 100;
+  --z-sticky: 200;
+  --z-modal-backdrop: 300;
+  --z-modal: 400;
+  --z-toast: 500;
+
+  /* Motion */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --ease-default: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-power3: cubic-bezier(0.625, 0.05, 0, 1);
+
+  /* Layout */
+  --max-width: 1280px;
+  --grid-columns: 12;
+  --grid-gutter: 24px;
+  --grid-margin: 48px;
+}
+
+/* ── Dark Theme (Default) ── */
+[data-theme="dark"],
+:root {
+  /* Obsidian Spatial Palette */
+  --bg-primary: #0C1324;
+  --bg-secondary: #151B2D;
+  --bg-tertiary: #191F31;
+  --bg-elevated: #23293C;
+  --bg-highest: #33394C;
+  --bg-glass: rgba(12, 19, 36, 0.4);
+
+  --text-primary: #DCE1FB;
+  --text-secondary: #728299;
+  --text-muted: #45464D;
+
+  /* Accent Colors */
+  --accent-primary: #4CD7F6;
+  --accent-hover: #acedff;
+  --accent-glow: rgba(76, 215, 246, 0.15);
+  --accent-secondary: #D0BCFF;
+  --accent-warning: #D4A76A;
+  --accent-danger: #ffb4ab;
+
+  --accent-easy: #4CD7F6;
+  --accent-medium: #D0BCFF;
+  --accent-hard: #ffb4ab;
+
+  /* Ghost borders & Specular Highlights */
+  --border-default: rgba(69, 70, 77, 0.15);
+  --border-hover: rgba(69, 70, 77, 0.30);
+  --specular-highlight: rgba(255, 255, 255, 0.12);
+
+  /* Spatial Shadows */
+  --shadow-sm: 0 4px 12px -2px rgba(7, 13, 31, 0.5);
+  --shadow-md: 0 12px 24px -6px rgba(7, 13, 31, 0.7);
+  --shadow-lg: 0 24px 48px -12px rgba(7, 13, 31, 0.9);
+  --shadow-glow: 0 0 30px var(--accent-glow);
+  --shadow-inner: inset 0 1px 1px 0 var(--specular-highlight);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #4CD7F6 0%, #008DA5 100%);
+  --gradient-hero: radial-gradient(ellipse at top, rgba(76, 215, 246, 0.1) 0%, transparent 70%);
+  --gradient-text: linear-gradient(135deg, #4CD7F6, #D0BCFF);
+}
+
+/* ── Light Theme ── */
+[data-theme="light"] {
+  /* Premium Frost Palette */
+  --bg-primary: #F8FAFC;
+  --bg-secondary: #FFFFFF;
+  --bg-tertiary: #F1F5F9;
+  --bg-elevated: #FFFFFF;
+  --bg-highest: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.65);
+
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #94A3B8;
+
+  /* Accent Colors */
+  --accent-primary: #008DA5;
+  --accent-hover: #00687A;
+  --accent-glow: rgba(0, 141, 165, 0.12);
+  --accent-secondary: #571BC1;
+  --accent-warning: #D4A76A;
+  --accent-danger: #BA1A1A;
+
+  --accent-easy: #008DA5;
+  --accent-medium: #571BC1;
+  --accent-hard: #BA1A1A;
+
+  /* Ghost borders & Specular Highlights */
+  --border-default: rgba(15, 23, 42, 0.06);
+  --border-hover: rgba(15, 23, 42, 0.12);
+  --specular-highlight: rgba(255, 255, 255, 0.8);
+
+  /* Spatial Shadows */
+  --shadow-sm: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 12px 24px -6px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 24px 48px -12px rgba(15, 23, 42, 0.15);
+  --shadow-glow: 0 0 30px var(--accent-glow);
+  --shadow-inner: inset 0 1px 1px 0 var(--specular-highlight);
+
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #008DA5 0%, #004E5C 100%);
+  --gradient-hero: radial-gradient(ellipse at top, rgba(0, 141, 165, 0.06) 0%, transparent 70%);
+  --gradient-text: linear-gradient(135deg, #008DA5, #571BC1);
+}
+
+/* ── Base Resets Using Tokens ── */
+body {
+  font-family: var(--font-body);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Utility Classes ── */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-code {
+  font-family: var(--font-code);
+}
+
+.text-gradient {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ── Shared Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 var(--accent-glow); }
+  50% { box-shadow: 0 0 20px 4px var(--accent-glow); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.8s var(--ease-default) forwards;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+/* ── Responsive Grid Margins ── */
+@media (max-width: 768px) {
+  :root {
+    --grid-gutter: 16px;
+    --grid-margin: 20px;
+    --text-display: 2.25rem;
+    --text-h1: 1.75rem;
+    --text-h2: 1.5rem;
+  }
+}
